@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bài tập Nguyên Hàm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="text/javascript" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .question-container {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    .question-container:hover {
+      transform: translateY(-5px);
+    }
+
+    #question {
+      font-size: 1.2em;
+      color: #34495e;
+      margin-bottom: 20px;
+      padding: 15px;
+      border-left: 4px solid #3498db;
+    }
+
+    .options label {
+      display: block;
+      margin-bottom: 15px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .options label:hover {
+      background: #e8f4f8;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    input[type="radio"] {
+      margin-right: 10px;
+    }
+
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1em;
+      margin: 10px;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .correct {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .incorrect {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .score-container {
+      text-align: center;
+      margin-top: 20px;
+      padding: 15px;
+      background: #e8f4f8;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+      }
+      
+      button {
+        width: 100%;
+        margin: 5px 0;
+      }
+      
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Bài tập Nguyên Hàm</h1>
+    <div class="question-container">
+      <div id="question"></div>
+      <div class="options" id="options"></div>
+      <button onclick="checkAnswer()">Kiểm tra</button>
+      <button onclick="generateQuestion()">Câu hỏi mới</button>
+    </div>
+    <div id="result"></div>
+    <div class="score-container">
+      <div id="score">Điểm số: 0</div>
+      <div id="totalQuestions">Bạn đã làm được: 0 câu</div>
+      <div id="encouragement"></div>
+    </div>
+  </div>
+
+  <script>
+    let correctAnswer = '';
+    let score = 0;
+    let totalQuestions = 0;
+    const encouragements = [
+      "Tuyệt vời! Bạn đang làm rất tốt! 🌟",
+      "Cố gắng lên, bạn sắp đạt được mục tiêu rồi! 💪",
+      "Wow! Bạn thật giỏi! 🎉",
+      "Kiến thức của bạn đang tiến bộ từng ngày! 📚",
+      "Hãy tiếp tục phát huy nhé! ⭐"
+    ];
+
+    async function generateQuestion() {
+      const functions = [
+        { f: 'k', F: 'kx + C', type: 'constant' },
+        { f: 'x^n', F: '\\frac{x^{n+1}}{n+1} + C', type: 'power' },
+        { f: '\\frac{1}{x}', F: '\\ln|x| + C', type: '1/x' },
+        { f: 'e^x', F: 'e^x + C', type: 'e^x' },
+        { f: 'a^x', F: '\\frac{a^x}{\\ln a} + C', type: 'a^x' },
+        { f: '\\sin x', F: '-\\cos x + C', type: 'sin' },
+        { f: '\\cos x', F: '\\sin x + C', type: 'cos' },
+        { f: '\\frac{1}{\\cos^2 x}', F: '\\tan x + C', type: '1/cos^2' },
+        { f: '\\frac{1}{\\sin^2 x}', F: '-\\cot x + C', type: '1/sin^2' },
+        { f: 'ax^2 + bx + c', F: '\\frac{a}{3}x^3 + \\frac{b}{2}x^2 + cx + C', type: 'polynomial' },
+        { f: '\\sin x + \\cos x', F: '-\\cos x + \\sin x + C', type: 'sin_plus_cos' },
+        { f: 'e^x + \\frac{1}{x}', F: 'e^x + \\ln|x| + C', type: 'e_x_plus_1/x' }
+      ];
+
+      const randomIndex = Math.floor(Math.random() * functions.length);
+      const selectedFunction = functions[randomIndex];
+      let question = '';
+      let options = [];
+
+      switch (selectedFunction.type) {
+        case 'constant':
+          const k = Math.floor(Math.random() * 10) + 1;
+          question = `\\( \\int ${k} dx \\)`;
+          correctAnswer = `\\( ${k}x + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type, k);
+          break;
+        case 'power':
+          const n = Math.floor(Math.random() * 5) + 1;
+          question = `\\( \\int x^{${n}} dx \\)`;
+          correctAnswer = `\\( \\frac{x^{${n + 1}}}{${n + 1}} + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type, n);
+          break;
+        case '1/x':
+          question = `\\( \\int \\frac{1}{x} dx \\)`;
+          correctAnswer = `\\( \\ln|x| + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type);
+          break;
+        case 'e^x':
+          question = `\\( \\int e^x dx \\)`;
+          correctAnswer = `\\( e^x + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type);
+          break;
+        case 'a^x':
+          const a = Math.floor(Math.random() * 5) + 2;
+          question = `\\( \\int ${a}^x dx \\)`;
+          correctAnswer = `\\( \\frac{${a}^x}{\\ln ${a}} + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type, a);
+          break;
+        case 'sin':
+          const coeff_sin = Math.floor(Math.random() * 10) + 1;
+          question = `\\( \\int ${coeff_sin}\\sin x dx \\)`;
+          correctAnswer = `\\( -${coeff_sin}\\cos x + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type, coeff_sin);
+          break;
+        case 'cos':
+          const coeff_cos = Math.floor(Math.random() * 10) + 1;
+          question = `\\( \\int ${coeff_cos}\\cos x dx \\)`;
+          correctAnswer = `\\( ${coeff_cos}\\sin x + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type, coeff_cos);
+          break;
+        case '1/cos^2':
+          question = `\\( \\int \\frac{1}{\\cos^2 x} dx \\)`;
+          correctAnswer = `\\( \\tan x + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type);
+          break;
+        case '1/sin^2':
+          question = `\\( \\int \\frac{1}{\\sin^2 x} dx \\)`;
+          correctAnswer = `\\( -\\cot x + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type);
+          break;
+        case 'polynomial':
+          const a_poly = Math.floor(Math.random() * 5) + 1;
+          const b_poly = Math.floor(Math.random() * 5) + 1;
+          const c_poly = Math.floor(Math.random() * 5) + 1;
+          question = `\\( \\int (${a_poly}x^2 + ${b_poly}x + ${c_poly}) dx \\)`;
+          correctAnswer = `\\( \\frac{${a_poly}}{3}x^3 + \\frac{${b_poly}}{2}x^2 + ${c_poly}x + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type, { a: a_poly, b: b_poly, c: c_poly });
+          break;
+        case 'sin_plus_cos':
+          question = `\\( \\int (\\sin x + \\cos x) dx \\)`;
+          correctAnswer = `\\( -\\cos x + \\sin x + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type);
+          break;
+        case 'e_x_plus_1/x':
+          question = `\\( \\int (e^x + \\frac{1}{x}) dx \\)`;
+          correctAnswer = `\\( e^x + \\ln|x| + C \\)`;
+          options = generateOptions(correctAnswer, selectedFunction.type);
+          break;
+      }
+
+      document.getElementById('question').innerHTML = 'Tìm nguyên hàm của: ' + question;
+      displayOptions(options);
+      document.getElementById('result').innerHTML = '';
+      
+      try {
+        await MathJax.typesetPromise();
+      } catch (e) {
+        console.error('MathJax error:', e);
+      }
+    }
+
+    function generateOptions(correctAnswer, type, params = null) {
+      let options = [correctAnswer];
+      let attempts = 0;
+      const maxAttempts = 20;
+      
+      while (options.length < 4 && attempts < maxAttempts) {
+        attempts++;
+        let wrongAnswer = '';
+        switch (type) {
+          case 'constant':
+            const wk = Math.floor(Math.random() * 10) + 1;
+            wrongAnswer = `\\( ${wk}x + C \\)`;
+            break;
+          case 'power':
+            const wn = Math.floor(Math.random() * 5) + 1;
+            wrongAnswer = `\\( \\frac{x^{${wn}}}{${wn}} + C \\)`;
+            break;
+          case '1/x':
+            wrongAnswer = `\\( \\frac{1}{x^2} + C \\)`;
+            break;
+          case 'e^x':
+            wrongAnswer = `\\( 2e^x + C \\)`;
+            break;
+          case 'a^x':
+            wrongAnswer = `\\( \\frac{${params}^x}{${Math.floor(Math.random() * 3) + 2}} + C \\)`;
+            break;
+          case 'sin':
+            const wcoeff_sin = Math.floor(Math.random() * 10) + 1;
+            wrongAnswer = `\\( ${wcoeff_sin}\\cos x + C \\)`;
+            break;
+          case 'cos':
+            const wcoeff_cos = Math.floor(Math.random() * 10) + 1;
+            wrongAnswer = `\\( -${wcoeff_cos}\\sin x + C \\)`;
+            break;
+          case '1/cos^2':
+            wrongAnswer = `\\( \\cot x + C \\)`;
+            break;
+          case '1/sin^2':
+            wrongAnswer = `\\( \\tan x + C \\)`;
+            break;
+          case 'polynomial':
+            const wa = Math.floor(Math.random() * 5) + 1;
+            const wb = Math.floor(Math.random() * 5) + 1;
+            const wc = Math.floor(Math.random() * 5) + 1;
+            wrongAnswer = `\\( \\frac{${wa}}{3}x^3 + \\frac{${wb}}{2}x^2 + ${wc}x + C \\)`;
+            break;
+          case 'sin_plus_cos':
+            wrongAnswer = `\\( \\cos x - \\sin x + C \\)`;
+            break;
+          case 'e_x_plus_1/x':
+            wrongAnswer = `\\( e^x - \\ln|x| + C \\)`;
+            break;
+        }
+        if (!options.includes(wrongAnswer)) {
+          options.push(wrongAnswer);
+        }
+      }
+      
+      if (options.length < 4) {
+        while (options.length < 4) {
+          options.push(`\\( ${Math.random().toFixed(1)}x + C \\)`);
+        }
+      }
+      return options.sort(() => Math.random() - 0.5);
+    }
+
+    function displayOptions(options) {
+      const optionsContainer = document.getElementById('options');
+      optionsContainer.innerHTML = '';
+      const labels = ['A', 'B', 'C', 'D']; // Thêm chữ A, B, C, D
+      for (let i = 0; i < options.length; i++) {
+        const option = options[i];
+        const label = document.createElement('label');
+        label.innerHTML = `
+          <input type="radio" name="answer" value="${option}">
+          <span style="margin-right: 10px;">${labels[i]}.</span>${option}
+        `;
+        optionsContainer.appendChild(label);
+      }
+    }
+
+    async function checkAnswer() {
+      const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+      const resultDiv = document.getElementById('result');
+      
+      if (selectedAnswer) {
+        totalQuestions++;
+        const userAnswer = selectedAnswer.value;
+        if (userAnswer === correctAnswer) {
+          score++;
+          resultDiv.className = 'correct';
+          resultDiv.innerHTML = 'Chính xác! +1 điểm';
+          document.getElementById('encouragement').innerHTML = 
+            encouragements[Math.floor(Math.random() * encouragements.length)];
+        } else {
+          resultDiv.className = 'incorrect';
+          resultDiv.innerHTML = 'Sai rồi. Đáp án đúng là: ' + correctAnswer;
+        }
+        document.getElementById('totalQuestions').innerHTML = `Bạn đã làm được: ${totalQuestions} câu`;
+        document.getElementById('score').innerHTML = `Điểm số: ${score}`;
+       
+        
+        try {
+          await MathJax.typesetPromise();
+        } catch (e) {
+          console.error('MathJax error:', e);
+        }
+      } else {
+        resultDiv.className = '';
+        resultDiv.innerHTML = 'Vui lòng chọn một phương án.';
+      }
+    }
+
+    generateQuestion();
+  </script>
+</body>
+</html>
