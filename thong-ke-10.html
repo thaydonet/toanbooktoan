@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê Toán lớp 10</title>
+    <style>
+        /* CSS styling */
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+            background: linear-gradient(to right, #f39c12, #f1c40f);
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .container {
+            max-width: 80%;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #555;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            resize: vertical;
+        }
+
+        .form-group .dual-input {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group .dual-input textarea {
+            width: 48%;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: #218838;
+        }
+
+        .textarea-container {
+            position: relative;
+            margin-top: 15px;
+        }
+
+.result {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+      
+       
+    </style>
+<script>
+    MathJax = {
+    tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+    fontCache: 'global'
+    }
+    };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+    src="https://math.booktoan.com/mathjax/es5/tex-mml-svg.js">
+    </script>
+</head>
+
+<body>
+    
+    <div class="container">
+        <h1>Giải Thống Kê Từ Số Liệu Nhập Vào</h1>
+
+        <div class="form-group">
+            <label for="input_data">Nhập số liệu (cách nhau bằng dấu phẩy hoặc khoảng trắng):</label>
+            <textarea id="input_data" rows="3" placeholder="Ví dụ: 1, 2, 3, 3, 4, 5, 5"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="dual-input">Hoặc nhập dãy số và dãy tần số tương ứng:</label>
+            <div class="dual-input">
+                <textarea id="input_values" rows="3" placeholder="Dãy số: Ví dụ 1, 2, 3"></textarea>
+                <textarea id="input_frequencies" rows="3" placeholder="Dãy tần số: Ví dụ 2, 3, 1"></textarea>
+            </div>
+        </div>
+
+        <button type="button" class="btn" onclick="processData()">Tính toán</button>
+	
+        <div id="result"></div>
+      
+    </div>
+
+    <script>
+        function processData() {
+            const inputData = document.getElementById("input_data").value.trim();
+            const inputValues = document.getElementById("input_values").value.trim();
+            const inputFrequencies = document.getElementById("input_frequencies").value.trim();
+            let data = [];
+            let values = [];
+            let frequencies = [];
+
+            if (inputData) {
+                // Trường hợp 1: Nhập số liệu thô
+                data = inputData.split(/[\s,]+/).map(Number);
+                const uniqueValues = [...new Set(data)];
+                values = uniqueValues;
+                frequencies = uniqueValues.map(value => data.filter(v => v === value).length);
+            } else if (inputValues && inputFrequencies) {
+                // Trường hợp 2: Nhập dãy số và dãy tần số
+                values = inputValues.split(/[\s,]+/).map(Number);
+                frequencies = inputFrequencies.split(/[\s,]+/).map(Number);
+
+                if (values.length !== frequencies.length) {
+                    alert("Số lượng giá trị và tần số không khớp.");
+                    return;
+                }
+
+                for (let i = 0; i < values.length; i++) {
+                    for (let j = 0; j < frequencies[i]; j++) {
+                        data.push(values[i]);
+                    }
+                }
+            } else {
+                alert("Vui lòng nhập dữ liệu vào một trong hai trường.");
+                return;
+            }
+
+            if (data.length === 0) {
+                alert("Vui lòng nhập số liệu hợp lệ.");
+                return;
+            }
+
+            // Xử lý kết quả
+            analyzeData(data, values, frequencies);
+        }
+
+        function analyzeData(data, values, frequencies) {
+            const n = frequencies.reduce((sum, freq) => sum + freq, 0);
+            const mean = calculateMean(values, frequencies);
+            const mode = calculateMode(values, frequencies);
+            const variance = calculateVariance(values, frequencies, mean);
+            const standardDeviation = Math.sqrt(variance);
+            const range = Math.max(...values) - Math.min(...values);
+            const { Q1, Q2, Q3 } = calculateQuartiles(values, frequencies, n);
+            const IQR = Q3 - Q1;
+            const lowerBound = Q1 - 1.5 * IQR;
+            const upperBound = Q3 + 1.5 * IQR;
+            const outliers = findOutliers(data, lowerBound, upperBound);
+
+            formatResult(values, frequencies, n, mean, mode, standardDeviation, Q1, Q2, Q3, range, IQR, lowerBound, upperBound, outliers);
+        }
+
+        function calculateMean(values, frequencies) {
+            const total = values.reduce((sum, value, index) => sum + value * frequencies[index], 0);
+            const totalFrequency = frequencies.reduce((sum, freq) => sum + freq, 0);
+            return total / totalFrequency;
+        }
+
+        function calculateMode(values, frequencies) {
+            const maxFrequency = Math.max(...frequencies);
+            return values.filter((value, index) => frequencies[index] === maxFrequency);
+        }
+
+        function calculateVariance(values, frequencies, mean) {
+            const totalFrequency = frequencies.reduce((sum, freq) => sum + freq, 0);
+            const varianceSum = values.reduce((total, value, index) => total + frequencies[index] * Math.pow(value - mean, 2), 0);
+            return varianceSum / totalFrequency;
+        }
+
+        function calculateQuartiles(values, frequencies, n) {
+            let sortedData = [];
+            for (let i = 0; i < values.length; i++) {
+                for (let j = 0; j < frequencies[i]; j++) {
+                    sortedData.push(values[i]);
+                }
+            }
+            sortedData.sort((a, b) => a - b);
+
+            const Q1 = sortedData[Math.floor((n + 1) / 4) - 1];
+            const Q2 = sortedData[Math.floor((n + 1) / 2) - 1];
+            const Q3 = sortedData[Math.floor(3 * (n + 1) / 4) - 1];
+
+            return { Q1, Q2, Q3 };
+        }
+
+        function findOutliers(data, lowerBound, upperBound) {
+            return data.filter(value => value < lowerBound || value > upperBound);
+        }
+
+        function formatResult(values, frequencies, n, mean, mode, standardDeviation, Q1, Q2, Q3, range, IQR, lowerBound, upperBound, outliers) {
+            let result = `<strong>Bài toán</strong> Cho các số liệu như sau <br/>`;
+           result += `<div style="text-align: center;">
+  <table style="margin: 0 auto; border-collapse: collapse; border: 1px solid black;">
+    <tr>
+      ${values.map(value => `<th style="border: 1px solid black; padding: 5px;">${value}</th>`).join('')}
+    </tr>
+    <tr>
+      ${frequencies.map(freq => `<td style="border: 1px solid black; padding: 5px;">${freq}</td>`).join('')}
+    </tr>
+  </table>
+</div>`;
+            result += `Tính số trung bình, tứ phân vị, mốt, độ lệch chuẩn, khoảng biến thiên, khoảng tứ phân vị và tìm các giá trị bất thường của mẫu số liệu trên.<br/>`;
+
+            result += `<strong>Lời giải</strong><br/>`;
+            result += `Sắp xếp các số liệu theo thứ tự không giảm, ta được<br/>`;
+            result += `<div style="text-align: center;">
+  <table style="margin: 0 auto; border-collapse: collapse; border: 1px solid black;">
+    <tr>
+      ${values.map(value => `<th style="border: 1px solid black; padding: 5px;">${value}</th>`).join('')}
+    </tr>
+    <tr>
+      ${frequencies.map(freq => `<td style="border: 1px solid black; padding: 5px;">${freq}</td>`).join('')}
+    </tr>
+  </table>
+</div>`;
+            const maxFrequency = Math.max(...frequencies);
+            const modeExplanation = mode.map(m => `${m} (xuất hiện ${frequencies[values.indexOf(m)]} lần)`).join(", ");
+
+            
+            result += `* Tính số trung bình: $\\overline{x} = \\dfrac{${values.map((value, index) => `${value} \\times ${frequencies[index]}`).join(' + ')}}{${n}} = ${mean.toFixed(2)}$.<br/>`;
+            result += `* Tính mốt: $M = ${mode.join(", ")}$. Giá trị này xuất hiện nhiều nhất là ${maxFrequency} lần: ${modeExplanation}.<br/>`;
+            result += `* Độ lệch chuẩn: $S = \\sqrt{\\dfrac{1}{${n}}\\sum_{i=1}^{${n}} (x_i - \\overline{x})^2} = ${standardDeviation.toFixed(2)}$.<br/>`;
+            result += `* Tính tứ phân vị:<br/>`;
+            
+            result += `$Q_1 = ${Q1.toFixed(2)}$,  <br/>`;
+            result += `$Q_2 = ${Q2.toFixed(2)}$,  <br/>`;
+            result += `$Q_3 = ${Q3.toFixed(2)}$.  <br/>`;
+            
+	    result += `* Khoảng biến thiên: $R = ${range}$.<br/>`;
+            result += `* Khoảng tứ phân vị: $\\Delta_Q = Q_3 - Q_1 = ${IQR}$.<br/>`;
+            result += `* Biên dưới của giá trị ngoại lai: $Q_1 - 1.5 \\times \\Delta_Q = ${lowerBound.toFixed(2)}$.<br/>`;
+            result += `* Biên trên của giá trị ngoại lai: $Q_3 + 1.5 \\times \\Delta_Q = ${upperBound.toFixed(2)}$.<br/>`;
+            result += `* Các giá trị bất thường: ${outliers.length ? outliers.join(", ") : "không có"}.<br/>`;
+            
+
+        document.getElementById('result').innerHTML = result;
+    MathJax.typeset();	
+        }
+
+          </script>
+</body>
+
+</html>
