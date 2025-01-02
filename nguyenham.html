@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Luyện tập Nguyên Hàm cơ bản</title>
+  <title>Bài tập Nguyên Hàm</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script type="text/javascript" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script type="text/javascript" async src="https://math.booktoan.com/mathjax/es5/tex-mml-chtml.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -166,12 +167,33 @@
       "Hãy tiếp tục phát huy nhé! ⭐"
     ];
 
+    // Hàm tính ước chung lớn nhất (GCD)
+    function gcd(a, b) {
+      if (!b) return a;
+      return gcd(b, a % b);
+    }
+
+    // Hàm tối giản phân số
+    function simplifyFraction(numerator, denominator) {
+      const divisor = gcd(numerator, denominator);
+      return [numerator / divisor, denominator / divisor];
+    }
+
+    // Hàm hiển thị biểu thức toán học
+    function formatExpression(coefficient, variable, exponent) {
+      let result = '';
+      if (coefficient !== 1) result += coefficient;
+      result += variable;
+      if (exponent !== 1) result += `^{${exponent}}`;
+      return result;
+    }
+
     const questionTemplates = [
       () => {
         const k = Math.floor(Math.random() * 10) + 1; // k từ 1 đến 10
         return {
           question: `\\( \\int ${k} dx \\)`,
-          correctAnswer: `\\( ${k}x + C \\)`,
+          correctAnswer: `\\( ${k === 1 ? 'x' : `${k}x`} + C \\)`,
           wrongAnswers: [
             `\\( \\frac{${k}}{2}x^2 + C \\)`,
             `\\( ${k}x^2 + C \\)`,
@@ -180,7 +202,7 @@
         };
       },
       () => {
-        const n = Math.floor(Math.random() * 5) + 1; // n từ 1 đến 5
+        const n = Math.floor(Math.random() * 4) + 2; // n từ 1 đến 5
         return {
           question: `\\( \\int x^{${n}} dx \\)`,
           correctAnswer: `\\( \\frac{x^{${n + 1}}}{${n + 1}} + C \\)`,
@@ -212,24 +234,24 @@
       () => {
         const coeff = Math.floor(Math.random() * 10) + 1; // Hệ số từ 1 đến 10
         return {
-          question: `\\( \\int ${coeff}\\sin x dx \\)`,
-          correctAnswer: `\\( -${coeff}\\cos x + C \\)`,
+          question: `\\( \\int ${coeff === 1 ? '\\sin x' : `${coeff}\\sin x`} dx \\)`,
+          correctAnswer: `\\( -${coeff === 1 ? '\\cos x' : `${coeff}\\cos x`} + C \\)`,
           wrongAnswers: [
-            `\\( ${coeff}\\cos x + C \\)`,
-            `\\( ${coeff}\\sin x + C \\)`,
-            `\\( -${coeff}\\sin x + C \\)`
+            `\\( ${coeff === 1 ? '\\cos x' : `${coeff}\\cos x`} + C \\)`,
+            `\\( ${coeff === 1 ? '\\sin x' : `${coeff}\\sin x`} + C \\)`,
+            `\\( -${coeff === 1 ? '\\sin x' : `${coeff}\\sin x`} + C \\)`
           ]
         };
       },
       () => {
         const coeff = Math.floor(Math.random() * 10) + 1; // Hệ số từ 1 đến 10
         return {
-          question: `\\( \\int ${coeff}\\cos x dx \\)`,
-          correctAnswer: `\\( ${coeff}\\sin x + C \\)`,
+          question: `\\( \\int ${coeff === 1 ? '\\cos x' : `${coeff}\\cos x`} dx \\)`,
+          correctAnswer: `\\( ${coeff === 1 ? '\\sin x' : `${coeff}\\sin x`} + C \\)`,
           wrongAnswers: [
-            `\\( -${coeff}\\sin x + C \\)`,
-            `\\( ${coeff}\\cos x + C \\)`,
-            `\\( -${coeff}\\cos x + C \\)`
+            `\\( -${coeff === 1 ? '\\sin x' : `${coeff}\\sin x`} + C \\)`,
+            `\\( ${coeff === 1 ? '\\cos x' : `${coeff}\\cos x`} + C \\)`,
+            `\\( -${coeff === 1 ? '\\cos x' : `${coeff}\\cos x`} + C \\)`
           ]
         };
       },
@@ -237,10 +259,29 @@
         const a = Math.floor(Math.random() * 5) + 1; // a từ 1 đến 5
         const b = Math.floor(Math.random() * 5) + 1; // b từ 1 đến 5
         const c = Math.floor(Math.random() * 5) + 1; // c từ 1 đến 5
-        return {
-          question: `\\( \\int (${a}x^2 + ${b}x + ${c}) dx \\)`,
-          correctAnswer: `\\( \\frac{${a}}{3}x^3 + \\frac{${b}}{2}x^2 + ${c}x + C \\)`,
-          wrongAnswers: [
+        const [aSimplified, aDenominator] = simplifyFraction(a, 3);
+        const [bSimplified, bDenominator] = simplifyFraction(b, 2);
+	// Hàm hiển thị phân số
+    const formatFraction = (numerator, denominator) => {
+      if (denominator === 1) return numerator === 1 ? '' : numerator;
+      return `\\frac{${numerator}}{${denominator}}`;
+    };
+
+    // Hiển thị hệ số a
+    const aTerm = formatFraction(aSimplified, aDenominator);
+    const aDisplay = aTerm ? `${aTerm}x^3` : 'x^3';
+
+    // Hiển thị hệ số b
+    const bTerm = formatFraction(bSimplified, bDenominator);
+    const bDisplay = bTerm ? `${bTerm}x^2` : 'x^2';
+
+    // Hiển thị hệ số c
+    const cDisplay = c === 1 ? 'x' : `${c}x`;
+
+    return {
+      question: `\\( \\int (${a}x^2 + ${b}x + ${c}) dx \\)`,
+      correctAnswer: `\\( ${aDisplay} + ${bDisplay} + ${cDisplay} + C \\)`,
+	wrongAnswers: [
             `\\( ${a} x^3 + ${b} x^2 + ${c} x + C \\)`,
             `\\( \\frac{${a}}{2}x^2 + ${b} x + ${c} + C \\)`,
             `\\( \\frac{${a}}{3}x^3 + ${b} x^2 + ${c} x + C \\)`
