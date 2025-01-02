@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bài tập Nguyên Hàm</title>
+  <title>Luyện tập Nguyên Hàm cơ bản</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script type="text/javascript" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
@@ -166,173 +166,128 @@
       "Hãy tiếp tục phát huy nhé! ⭐"
     ];
 
+    const questionTemplates = [
+      () => {
+        const k = Math.floor(Math.random() * 10) + 1; // k từ 1 đến 10
+        return {
+          question: `\\( \\int ${k} dx \\)`,
+          correctAnswer: `\\( ${k}x + C \\)`,
+          wrongAnswers: [
+            `\\( \\frac{${k}}{2}x^2 + C \\)`,
+            `\\( ${k}x^2 + C \\)`,
+            `\\( \\frac{${k}}{x} + C \\)`
+          ]
+        };
+      },
+      () => {
+        const n = Math.floor(Math.random() * 5) + 1; // n từ 1 đến 5
+        return {
+          question: `\\( \\int x^{${n}} dx \\)`,
+          correctAnswer: `\\( \\frac{x^{${n + 1}}}{${n + 1}} + C \\)`,
+          wrongAnswers: [
+            `\\( x^{${n - 1}} + C \\)`,
+            `\\( \\frac{x^{${n}}}{${n}} + C \\)`,
+            `\\( ${n} x^{${n + 1}} + C \\)`
+          ]
+        };
+      },
+      () => ({
+        question: `\\( \\int \\frac{1}{x} dx \\)`,
+        correctAnswer: `\\( \\ln|x| + C \\)`,
+        wrongAnswers: [
+          `\\( \\frac{1}{x^2} + C \\)`,
+          `\\( x + C \\)`,
+          `\\( -\\frac{1}{x} + C \\)`
+        ]
+      }),
+      () => ({
+        question: `\\( \\int e^x dx \\)`,
+        correctAnswer: `\\( e^x + C \\)`,
+        wrongAnswers: [
+          `\\( e^{x+1} + C \\)`,
+          `\\( \\frac{e^x}{x} + C \\)`,
+          `\\( e^x + x + C \\)`
+        ]
+      }),
+      () => {
+        const coeff = Math.floor(Math.random() * 10) + 1; // Hệ số từ 1 đến 10
+        return {
+          question: `\\( \\int ${coeff}\\sin x dx \\)`,
+          correctAnswer: `\\( -${coeff}\\cos x + C \\)`,
+          wrongAnswers: [
+            `\\( ${coeff}\\cos x + C \\)`,
+            `\\( ${coeff}\\sin x + C \\)`,
+            `\\( -${coeff}\\sin x + C \\)`
+          ]
+        };
+      },
+      () => {
+        const coeff = Math.floor(Math.random() * 10) + 1; // Hệ số từ 1 đến 10
+        return {
+          question: `\\( \\int ${coeff}\\cos x dx \\)`,
+          correctAnswer: `\\( ${coeff}\\sin x + C \\)`,
+          wrongAnswers: [
+            `\\( -${coeff}\\sin x + C \\)`,
+            `\\( ${coeff}\\cos x + C \\)`,
+            `\\( -${coeff}\\cos x + C \\)`
+          ]
+        };
+      },
+      () => {
+        const a = Math.floor(Math.random() * 5) + 1; // a từ 1 đến 5
+        const b = Math.floor(Math.random() * 5) + 1; // b từ 1 đến 5
+        const c = Math.floor(Math.random() * 5) + 1; // c từ 1 đến 5
+        return {
+          question: `\\( \\int (${a}x^2 + ${b}x + ${c}) dx \\)`,
+          correctAnswer: `\\( \\frac{${a}}{3}x^3 + \\frac{${b}}{2}x^2 + ${c}x + C \\)`,
+          wrongAnswers: [
+            `\\( ${a} x^3 + ${b} x^2 + ${c} x + C \\)`,
+            `\\( \\frac{${a}}{2}x^2 + ${b} x + ${c} + C \\)`,
+            `\\( \\frac{${a}}{3}x^3 + ${b} x^2 + ${c} x + C \\)`
+          ]
+        };
+      },
+      () => ({
+        question: `\\( \\int (\\sin x + \\cos x) dx \\)`,
+        correctAnswer: `\\( -\\cos x + \\sin x + C \\)`,
+        wrongAnswers: [
+          `\\( \\cos x + \\sin x + C \\)`,
+          `\\( -\\cos x - \\sin x + C \\)`,
+          `\\( \\cos x - \\sin x + C \\)`
+        ]
+      }),
+      () => ({
+        question: `\\( \\int (e^x + \\frac{1}{x}) dx \\)`,
+        correctAnswer: `\\( e^x + \\ln|x| + C \\)`,
+        wrongAnswers: [
+          `\\( e^x - \\ln|x| + C \\)`,
+          `\\( e^x + \\frac{1}{x^2} + C \\)`,
+          `\\( e^x + x + C \\)`
+        ]
+      })
+    ];
+
     async function generateQuestion() {
-      const functions = [
-        { f: 'k', F: 'kx + C', type: 'constant' },
-        { f: 'x^n', F: '\\frac{x^{n+1}}{n+1} + C', type: 'power' },
-        { f: '\\frac{1}{x}', F: '\\ln|x| + C', type: '1/x' },
-        { f: 'e^x', F: 'e^x + C', type: 'e^x' },
-        { f: 'a^x', F: '\\frac{a^x}{\\ln a} + C', type: 'a^x' },
-        { f: '\\sin x', F: '-\\cos x + C', type: 'sin' },
-        { f: '\\cos x', F: '\\sin x + C', type: 'cos' },
-        { f: '\\frac{1}{\\cos^2 x}', F: '\\tan x + C', type: '1/cos^2' },
-        { f: '\\frac{1}{\\sin^2 x}', F: '-\\cot x + C', type: '1/sin^2' },
-        { f: 'ax^2 + bx + c', F: '\\frac{a}{3}x^3 + \\frac{b}{2}x^2 + cx + C', type: 'polynomial' },
-        { f: '\\sin x + \\cos x', F: '-\\cos x + \\sin x + C', type: 'sin_plus_cos' },
-        { f: 'e^x + \\frac{1}{x}', F: 'e^x + \\ln|x| + C', type: 'e_x_plus_1/x' }
-      ];
+      const randomIndex = Math.floor(Math.random() * questionTemplates.length);
+      const template = questionTemplates[randomIndex]();
 
-      const randomIndex = Math.floor(Math.random() * functions.length);
-      const selectedFunction = functions[randomIndex];
-      let question = '';
-      let options = [];
+      // Lấy câu hỏi và đáp án đúng
+      document.getElementById('question').innerHTML = 'Tìm nguyên hàm của: ' + template.question;
+      correctAnswer = template.correctAnswer;
 
-      switch (selectedFunction.type) {
-        case 'constant':
-          const k = Math.floor(Math.random() * 10) + 1;
-          question = `\\( \\int ${k} dx \\)`;
-          correctAnswer = `\\( ${k}x + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type, k);
-          break;
-        case 'power':
-          const n = Math.floor(Math.random() * 5) + 1;
-          question = `\\( \\int x^{${n}} dx \\)`;
-          correctAnswer = `\\( \\frac{x^{${n + 1}}}{${n + 1}} + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type, n);
-          break;
-        case '1/x':
-          question = `\\( \\int \\frac{1}{x} dx \\)`;
-          correctAnswer = `\\( \\ln|x| + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type);
-          break;
-        case 'e^x':
-          question = `\\( \\int e^x dx \\)`;
-          correctAnswer = `\\( e^x + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type);
-          break;
-        case 'a^x':
-          const a = Math.floor(Math.random() * 5) + 2;
-          question = `\\( \\int ${a}^x dx \\)`;
-          correctAnswer = `\\( \\frac{${a}^x}{\\ln ${a}} + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type, a);
-          break;
-        case 'sin':
-          const coeff_sin = Math.floor(Math.random() * 10) + 1;
-          question = `\\( \\int ${coeff_sin}\\sin x dx \\)`;
-          correctAnswer = `\\( -${coeff_sin}\\cos x + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type, coeff_sin);
-          break;
-        case 'cos':
-          const coeff_cos = Math.floor(Math.random() * 10) + 1;
-          question = `\\( \\int ${coeff_cos}\\cos x dx \\)`;
-          correctAnswer = `\\( ${coeff_cos}\\sin x + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type, coeff_cos);
-          break;
-        case '1/cos^2':
-          question = `\\( \\int \\frac{1}{\\cos^2 x} dx \\)`;
-          correctAnswer = `\\( \\tan x + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type);
-          break;
-        case '1/sin^2':
-          question = `\\( \\int \\frac{1}{\\sin^2 x} dx \\)`;
-          correctAnswer = `\\( -\\cot x + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type);
-          break;
-        case 'polynomial':
-          const a_poly = Math.floor(Math.random() * 5) + 1;
-          const b_poly = Math.floor(Math.random() * 5) + 1;
-          const c_poly = Math.floor(Math.random() * 5) + 1;
-          question = `\\( \\int (${a_poly}x^2 + ${b_poly}x + ${c_poly}) dx \\)`;
-          correctAnswer = `\\( \\frac{${a_poly}}{3}x^3 + \\frac{${b_poly}}{2}x^2 + ${c_poly}x + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type, { a: a_poly, b: b_poly, c: c_poly });
-          break;
-        case 'sin_plus_cos':
-          question = `\\( \\int (\\sin x + \\cos x) dx \\)`;
-          correctAnswer = `\\( -\\cos x + \\sin x + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type);
-          break;
-        case 'e_x_plus_1/x':
-          question = `\\( \\int (e^x + \\frac{1}{x}) dx \\)`;
-          correctAnswer = `\\( e^x + \\ln|x| + C \\)`;
-          options = generateOptions(correctAnswer, selectedFunction.type);
-          break;
-      }
+      // Tạo các phương án (đáp án đúng + 3 đáp án sai)
+      const options = [correctAnswer, ...template.wrongAnswers];
+      displayOptions(options.sort(() => Math.random() - 0.5)); // Xáo trộn đáp án
 
-      document.getElementById('question').innerHTML = 'Tìm nguyên hàm của: ' + question;
-      displayOptions(options);
+      // Xóa kết quả trước đó
       document.getElementById('result').innerHTML = '';
-      
+
+      // Render lại MathJax
       try {
         await MathJax.typesetPromise();
       } catch (e) {
         console.error('MathJax error:', e);
       }
-    }
-
-    function generateOptions(correctAnswer, type, params = null) {
-      let options = [correctAnswer];
-      let attempts = 0;
-      const maxAttempts = 20;
-      
-      while (options.length < 4 && attempts < maxAttempts) {
-        attempts++;
-        let wrongAnswer = '';
-        switch (type) {
-          case 'constant':
-            const wk = Math.floor(Math.random() * 10) + 1;
-            wrongAnswer = `\\( ${wk}x + C \\)`;
-            break;
-          case 'power':
-            const wn = Math.floor(Math.random() * 5) + 1;
-            wrongAnswer = `\\( \\frac{x^{${wn}}}{${wn}} + C \\)`;
-            break;
-          case '1/x':
-            wrongAnswer = `\\( \\frac{1}{x^2} + C \\)`;
-            break;
-          case 'e^x':
-            wrongAnswer = `\\( 2e^x + C \\)`;
-            break;
-          case 'a^x':
-            wrongAnswer = `\\( \\frac{${params}^x}{${Math.floor(Math.random() * 3) + 2}} + C \\)`;
-            break;
-          case 'sin':
-            const wcoeff_sin = Math.floor(Math.random() * 10) + 1;
-            wrongAnswer = `\\( ${wcoeff_sin}\\cos x + C \\)`;
-            break;
-          case 'cos':
-            const wcoeff_cos = Math.floor(Math.random() * 10) + 1;
-            wrongAnswer = `\\( -${wcoeff_cos}\\sin x + C \\)`;
-            break;
-          case '1/cos^2':
-            wrongAnswer = `\\( \\cot x + C \\)`;
-            break;
-          case '1/sin^2':
-            wrongAnswer = `\\( \\tan x + C \\)`;
-            break;
-          case 'polynomial':
-            const wa = Math.floor(Math.random() * 5) + 1;
-            const wb = Math.floor(Math.random() * 5) + 1;
-            const wc = Math.floor(Math.random() * 5) + 1;
-            wrongAnswer = `\\( \\frac{${wa}}{3}x^3 + \\frac{${wb}}{2}x^2 + ${wc}x + C \\)`;
-            break;
-          case 'sin_plus_cos':
-            wrongAnswer = `\\( \\cos x - \\sin x + C \\)`;
-            break;
-          case 'e_x_plus_1/x':
-            wrongAnswer = `\\( e^x - \\ln|x| + C \\)`;
-            break;
-        }
-        if (!options.includes(wrongAnswer)) {
-          options.push(wrongAnswer);
-        }
-      }
-      
-      if (options.length < 4) {
-        while (options.length < 4) {
-          options.push(`\\( ${Math.random().toFixed(1)}x + C \\)`);
-        }
-      }
-      return options.sort(() => Math.random() - 0.5);
     }
 
     function displayOptions(options) {
@@ -367,9 +322,8 @@
           resultDiv.className = 'incorrect';
           resultDiv.innerHTML = 'Sai rồi. Đáp án đúng là: ' + correctAnswer;
         }
-        document.getElementById('totalQuestions').innerHTML = `Bạn đã làm được: ${totalQuestions} câu`;
         document.getElementById('score').innerHTML = `Điểm số: ${score}`;
-       
+        document.getElementById('totalQuestions').innerHTML = `Bạn đã làm được: ${totalQuestions} câu`;
         
         try {
           await MathJax.typesetPromise();
