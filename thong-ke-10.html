@@ -235,10 +235,10 @@
             let result = `<strong>Bài toán</strong> Cho các số liệu như sau <br/>`;
            result += `<div style="text-align: center;">
   <table style="margin: 0 auto; border-collapse: collapse; border: 1px solid black;">
-    <tr>
+    <tr><th style="border: 1px solid black; padding: 5px;">Giá trị</th>
       ${values.map(value => `<th style="border: 1px solid black; padding: 5px;">${value}</th>`).join('')}
     </tr>
-    <tr>
+    <tr><th style="border: 1px solid black; padding: 5px;">Tần số</th>
       ${frequencies.map(freq => `<td style="border: 1px solid black; padding: 5px;">${freq}</td>`).join('')}
     </tr>
   </table>
@@ -249,10 +249,10 @@
             result += `Sắp xếp các số liệu theo thứ tự không giảm, ta được<br/>`;
             result += `<div style="text-align: center;">
   <table style="margin: 0 auto; border-collapse: collapse; border: 1px solid black;">
-    <tr>
+    <tr><th style="border: 1px solid black; padding: 5px;">Giá trị</th>
       ${values.map(value => `<th style="border: 1px solid black; padding: 5px;">${value}</th>`).join('')}
     </tr>
-    <tr>
+    <tr><th style="border: 1px solid black; padding: 5px;">Tần số</th>
       ${frequencies.map(freq => `<td style="border: 1px solid black; padding: 5px;">${freq}</td>`).join('')}
     </tr>
   </table>
