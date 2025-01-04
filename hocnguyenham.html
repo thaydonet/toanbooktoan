@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard Nguyên Hàm</title>
+    <!-- Load MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        /* General styles */
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff;
+        }
+
+        /* Flashcard container */
+        .flashcard-container {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+
+        /* Flashcard styles */
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease;
+            cursor: pointer;
+        }
+
+        .flashcard .front, .flashcard .back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #ffffff;
+        }
+
+        .flashcard .front {
+            transform: rotateY(0deg);
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+        }
+
+        .flashcard .back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Math formula styles */
+        .math-formula {
+            font-size: 18px;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        /* Button styles */
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff6f61;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-container button:hover {
+            background-color: #ff3b2f;
+        }
+
+        /* Progress indicator */
+        .progress {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .flashcard-container {
+                width: 100%;
+                height: 150px;
+            }
+
+            .math-formula {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="flashcard-container">
+        <div class="flashcard" onclick="flipCard()">
+            <div class="front">
+                <div class="math-formula" id="front-content"></div>
+            </div>
+            <div class="back">
+                <div class="math-formula" id="back-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="button-container">
+        <button onclick="previousFormula()">Trước</button>
+        <button onclick="nextFormula()">Tiếp theo</button>
+    </div>
+
+    <div class="progress" id="progress">Công thức 1/5</div>
+
+    <script>
+        const formulas = [
+            { front: "\\int x^n \\, dx =", back: "\\int x^n \\, dx = \\frac{x^{n+1}}{n+1} + C \\quad (n \\neq -1)" },
+            { front: "\\int e^x \\, dx =", back: "\\int e^x \\, dx = e^x + C" },
+            { front: "\\int \\frac{1}{x} \\, dx =", back: "\\int \\frac{1}{x} \\, dx = \\ln|x| + C" },
+            { front: "\\int \\sin(x) \\, dx =", back: "\\int \\sin(x) \\, dx = -\\cos(x) + C" },
+            { front: "\\int \\cos(x) \\, dx =", back: "\\int \\cos(x) \\, dx = \\sin(x) + C" }
+        ];
+
+        let currentIndex = 0;
+        const frontContent = document.getElementById('front-content');
+        const backContent = document.getElementById('back-content');
+        const progress = document.getElementById('progress');
+        const flashcard = document.querySelector('.flashcard');
+
+        // Hiển thị công thức ban đầu
+        updateFormula();
+
+        function updateFormula() {
+            frontContent.innerHTML = `\\(${formulas[currentIndex].front}\\)`;
+            backContent.innerHTML = `\\(${formulas[currentIndex].back}\\)`;
+            progress.textContent = `Công thức ${currentIndex + 1}/${formulas.length}`;
+            MathJax.typeset(); // Render lại MathJax
+        }
+
+        function flipCard() {
+            flashcard.classList.toggle('flipped');
+        }
+
+        function nextFormula() {
+            if (currentIndex < formulas.length - 1) {
+                currentIndex++;
+                updateFormula();
+                if (flashcard.classList.contains('flipped')) {
+                    flashcard.classList.remove('flipped'); // Đảm bảo thẻ quay về mặt trước
+                }
+            } 
+        }
+
+        function previousFormula() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateFormula();
+                if (flashcard.classList.contains('flipped')) {
+                    flashcard.classList.remove('flipped'); // Đảm bảo thẻ quay về mặt trước
+                }
+            } 
+        }
+    </script>
+</body>
+</html>
