@@ -21,6 +21,20 @@
             color: #fff;
         }
 
+        /* Title and instruction */
+        .title {
+            font-size: 20px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .instruction {
+            font-size: 14px;
+            margin-bottom: 20px;
+            color: #ddd;
+            text-align: center;
+        }
+
         /* Flashcard container */
         .flashcard-container {
             position: relative;
@@ -53,6 +67,7 @@
             padding: 20px;
             box-sizing: border-box;
             background-color: #ffffff;
+            text-align: center;
         }
 
         .flashcard .front {
@@ -72,7 +87,6 @@
         /* Math formula styles */
         .math-formula {
             font-size: 18px;
-            text-align: center;
             color: #2c3e50;
         }
 
@@ -119,6 +133,13 @@
     </style>
 </head>
 <body>
+    <!-- Title -->
+    <div class="title">Đây là các flash card để học công thức, tính chất Nguyên hàm, toán 12</div>
+
+    <!-- Instruction -->
+    <div class="instruction">Bấm vào hình để lật học công thức phía sau</div>
+
+    <!-- Flashcard -->
     <div class="flashcard-container">
         <div class="flashcard" onclick="flipCard()">
             <div class="front">
@@ -130,18 +151,22 @@
         </div>
     </div>
 
+    <!-- Navigation buttons -->
     <div class="button-container">
         <button onclick="previousFormula()">Trước</button>
         <button onclick="nextFormula()">Tiếp theo</button>
     </div>
 
-    <div class="progress" id="progress">Công thức 1/5</div>
+    <!-- Progress indicator -->
+    <div class="progress" id="progress">Công thức 1</div>
 
     <script>
-        const formulas = [
+         const formulas = [
             { front: "\\int x^n \\, dx =", back: "\\int x^n \\, dx = \\frac{x^{n+1}}{n+1} + C \\quad (n \\neq -1)" },
-            { front: "\\int e^x \\, dx =", back: "\\int e^x \\, dx = e^x + C" },
+            { front: "\\int k \\, dx =", back: "\\int k \\, dx = kx + C" },
             { front: "\\int \\frac{1}{x} \\, dx =", back: "\\int \\frac{1}{x} \\, dx = \\ln|x| + C" },
+            { front: "\\int e^x \\, dx =", back: "\\int e^x \\, dx = e^x + C" },
+            { front: "\\int a^x \\, dx =", back: "\\int a^x \\, dx = \\frac{a^x}{lna} + C" },
             { front: "\\int \\sin(x) \\, dx =", back: "\\int \\sin(x) \\, dx = -\\cos(x) + C" },
             { front: "\\int \\cos(x) \\, dx =", back: "\\int \\cos(x) \\, dx = \\sin(x) + C" }
         ];
@@ -169,21 +194,25 @@
         function nextFormula() {
             if (currentIndex < formulas.length - 1) {
                 currentIndex++;
-                updateFormula();
-                if (flashcard.classList.contains('flipped')) {
-                    flashcard.classList.remove('flipped'); // Đảm bảo thẻ quay về mặt trước
-                }
-            } 
+            } else {
+                currentIndex = 0; // Quay lại công thức đầu tiên
+            }
+            updateFormula();
+            if (flashcard.classList.contains('flipped')) {
+                flashcard.classList.remove('flipped'); // Đảm bảo thẻ quay về mặt trước
+            }
         }
 
         function previousFormula() {
             if (currentIndex > 0) {
                 currentIndex--;
-                updateFormula();
-                if (flashcard.classList.contains('flipped')) {
-                    flashcard.classList.remove('flipped'); // Đảm bảo thẻ quay về mặt trước
-                }
-            } 
+            } else {
+                currentIndex = formulas.length - 1; // Quay lại công thức cuối cùng
+            }
+            updateFormula();
+            if (flashcard.classList.contains('flipped')) {
+                flashcard.classList.remove('flipped'); // Đảm bảo thẻ quay về mặt trước
+            }
         }
     </script>
 </body>
