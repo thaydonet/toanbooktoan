@@ -162,7 +162,7 @@
 
     <script>
          const formulas = [
-            { front: "Nếu F'(x)=f(x) \\, dx =", back: "Nếu F'(x)=f(x) \\, thì F(x) là nguyên hàm của f(x)" },
+            { front: "Nếu \\, F'(x)=f(x)", back: "thì \\, F(x) \\, là \\, nguyên \\, hàm \\, của \\, f(x)" },
             { front: "\\int x^n \\, dx =", back: "\\int x^n \\, dx = \\frac{x^{n+1}}{n+1} + C \\quad (n \\neq -1)" },
             { front: "\\int k \\, dx =", back: "\\int k \\, dx = kx + C" },
             { front: "\\int \\frac{1}{x} \\, dx =", back: "\\int \\frac{1}{x} \\, dx = \\ln|x| + C" },
@@ -171,8 +171,11 @@
             { front: "\\int \\sin(x) \\, dx =", back: "\\int \\sin(x) \\, dx = -\\cos(x) + C" },
             { front: "\\int \\cos(x) \\, dx =", back: "\\int \\cos(x) \\, dx = \\sin(x) + C" },
             { front: "\\int \\frac{1}{cos^2(x)} \\, dx =", back: "\\int \\frac{1}{cos^2(x)} \\, dx = tan(x) + C" },
-            { front: "\\int \\frac{1}{sin^2(x)} \\, dx =", back: "\\int \\frac{1}{cos^2(x)} \\, dx = -cot(x) + C" },
-    { front: "\\int \\frac{1}{cos^2(x)} \\, dx =", back: "\\int \\frac{1}{cos^2(x)} \\, dx = tan(x) + C" },
+            { front: "\\int \\frac{1}{sin^2(x)} \\, dx =", back: "\\int \\frac{1}{sin^2(x)} \\, dx = -cot(x) + C" },
+    { front: "\\int f'(x) \\, dx =", back: "\\int f'(x) \\, dx = f(x) + C" },
+             { front: "\\int kf(x) \\, dx =", back: "\\int kf(x) \\, dx = k\\int f(x) \\, dx \\,(k # 0)" },
+             { front: "\\int [f(x) + g(x)]\\, dx =", back: "\\int [f(x) + g(x)]\\, dx =\\int f(x) \\, dx + \\int g(x)\\, dx" }
+              { front: "\\int [f(x) + g(x)]\\, dx =", back: "\\int [f(x) - g(x)]\\, dx =\\int f(x) \\, dx - \\int g(x)\\, dx" }
         ];
 
         let currentIndex = 0;
