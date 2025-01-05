@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard Nguyên Hàm</title>
+    <!-- Load MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        /* General styles */
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff;
+        }
+
+        /* Title and instruction */
+        .title {
+            font-size: 20px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .instruction {
+            font-size: 14px;
+            margin-bottom: 20px;
+            color: #ddd;
+            text-align: center;
+        }
+
+        /* Flashcard container */
+        .flashcard-container {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+
+        /* Flashcard styles */
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease;
+            cursor: pointer;
+        }
+
+        .flashcard .front, .flashcard .back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            text-align: center;
+            overflow: hidden;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .flashcard .front {
+            transform: rotateY(0deg);
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+        }
+
+        .flashcard .back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Math formula styles */
+        .math-formula {
+            font-size: 16px;
+            color: #2c3e50;
+            line-height: 1.5;
+            max-width: 100%;
+        }
+
+        /* Button styles */
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff6f61;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-container button:hover {
+            background-color: #ff3b2f;
+        }
+
+        /* Progress indicator */
+        .progress {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .flashcard-container {
+                width: 100%;
+                height: 150px;
+            }
+
+            .math-formula {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Title -->
+    <div class="title">Đây là các flash card để học công thức, tính chất Nguyên hàm, toán 12</div>
+
+    <!-- Instruction -->
+    <div class="instruction">Bấm vào hình để lật học công thức phía sau</div>
+
+    <!-- Flashcard -->
+    <div class="flashcard-container">
+        <div class="flashcard" onclick="flipCard()">
+            <div class="front">
+                <div class="math-formula" id="front-content">Đang tải dữ liệu...</div>
+            </div>
+            <div class="back">
+                <div class="math-formula" id="back-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation buttons -->
+    <div class="button-container">
+        <button onclick="previousFormula()">Trước</button>
+        <button onclick="nextFormula()">Tiếp theo</button>
+    </div>
+
+    <!-- Progress indicator -->
+    <div class="progress" id="progress">Công thức 0/0</div>
+
+    <script>
+        let formulas = [];
+        let currentIndex = 0;
+        const frontContent = document.getElementById('front-content');
+        const backContent = document.getElementById('back-content');
+        const progress = document.getElementById('progress');
+        const flashcard = document.querySelector('.flashcard');
+
+        // Đọc file CSV từ cùng thư mục
+        async function loadCSV() {
+            try {
+                const response = await fetch('data.csv'); // Đường dẫn tới file CSV
+                const text = await response.text();
+                formulas = parseCSV(text);
+                if (formulas.length > 0) {
+                    currentIndex = 0;
+                    updateFormula();
+                } else {
+                    frontContent.innerHTML = "Không có dữ liệu trong file CSV";
+                }
+            } catch (error) {
+                frontContent.innerHTML = "Lỗi khi tải file CSV";
+                console.error("Lỗi khi tải file CSV:", error);
+            }
+        }
+
+        // Phân tích dữ liệu CSV
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const result = [];
+            for (let i = 1; i < lines.length; i++) { // Bỏ qua dòng đầu tiên (tiêu đề)
+                const [front, back] = lines[i].split(';');
+                if (front && back) {
+                    result.push({ front: front.trim(), back: back.trim() });
+                }
+            }
+            return result;
+        }
+
+        // Cập nhật công thức hiển thị
+        function updateFormula() {
+            if (formulas.length > 0) {
+                frontContent.innerHTML = formulas[currentIndex].front;
+                backContent.innerHTML = formulas[currentIndex].back;
+                progress.textContent = `Công thức ${currentIndex + 1}/${formulas.length}`;
+                MathJax.typeset(); // Render lại MathJax
+            } else {
+                frontContent.innerHTML = "Không có dữ liệu";
+                backContent.innerHTML = "";
+                progress.textContent = "Công thức 0/0";
+            }
+        }
+
+        // Lật thẻ
+        function flipCard() {
+            flashcard.classList.toggle('flipped');
+        }
+
+        // Chuyển đến công thức trước đó
+        function previousFormula() {
+            if (formulas.length > 0) {
+                currentIndex = (currentIndex > 0) ? currentIndex - 1 : formulas.length - 1;
+                updateFormula();
+                if (flashcard.classList.contains('flipped')) {
+                    flashcard.classList.remove('flipped');
+                }
+            }
+        }
+
+        // Chuyển đến công thức tiếp theo
+        function nextFormula() {
+            if (formulas.length > 0) {
+                currentIndex = (currentIndex < formulas.length - 1) ? currentIndex + 1 : 0;
+                updateFormula();
+                if (flashcard.classList.contains('flipped')) {
+                    flashcard.classList.remove('flipped');
+                }
+            }
+        }
+
+        // Tải dữ liệu CSV khi trang được tải
+        loadCSV();
+    </script>
+</body>
+</html>
