@@ -177,6 +177,9 @@
         async function loadCSV() {
             try {
                 const response = await fetch('data.csv'); // Đường dẫn tới file CSV
+                if (!response.ok) {
+                    throw new Error(`Lỗi khi tải file CSV: ${response.status} ${response.statusText}`);
+                }
                 const text = await response.text();
                 formulas = parseCSV(text);
                 if (formulas.length > 0) {
@@ -207,10 +210,16 @@
         // Cập nhật công thức hiển thị
         function updateFormula() {
             if (formulas.length > 0) {
-                frontContent.innerHTML = formulas[currentIndex].front;
-                backContent.innerHTML = formulas[currentIndex].back;
+                frontContent.innerHTML = `\\(${formulas[currentIndex].front}\\)`;
+                backContent.innerHTML = `\\(${formulas[currentIndex].back}\\)`;
                 progress.textContent = `Công thức ${currentIndex + 1}/${formulas.length}`;
-                MathJax.typeset(); // Render lại MathJax
+                
+                // Render lại MathJax sau khi cập nhật nội dung
+                MathJax.typesetPromise().then(() => {
+                    console.log("MathJax đã render lại công thức.");
+                }).catch((err) => {
+                    console.error("Lỗi khi render MathJax:", err);
+                });
             } else {
                 frontContent.innerHTML = "Không có dữ liệu";
                 backContent.innerHTML = "";
