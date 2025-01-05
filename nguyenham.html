@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bài tập Nguyên Hàm</title>
-<meta charset="UTF-8">
+  <title>Luyện tập Nguyên Hàm</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script type="text/javascript" async src="https://math.booktoan.com/mathjax/es5/tex-mml-svg.js"></script>
   <style>
+    /* Các style hiện có giữ nguyên */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -135,15 +136,94 @@
         font-size: 1.8em;
       }
     }
+
+    /* Thêm style cho đồng hồ đếm ngược và phần nhập tên */
+    .timer {
+      text-align: center;
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      color: #ffffff;
+      background: #3498db;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      font-weight: bold;
+    }
+    .name-input {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .name-input input {
+      padding: 10px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .name-input button {
+      padding: 10px 20px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: none;
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+    .name-input button:hover {
+      background: #2980b9;
+    }
+    .options label.disabled {
+      background: #f0f0f0;
+      cursor: not-allowed;
+    }
+    .student-name {
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    .end-message {
+      text-align: center;
+      font-size: 2em;
+      font-weight: bold;
+      color: #e74c3c;
+      margin-top: 20px;
+      padding: 20px;
+      background: #f8d7da;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .restart-button {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1em;
+      margin: 10px;
+      transition: all 0.3s ease;
+    }
+    .restart-button:hover {
+      background: #c0392b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Bài tập Nguyên Hàm</h1>
+    <div class="name-input">
+      <input type="text" id="studentName" placeholder="Nhập tên của bạn">
+      <button onclick="startQuiz()">Bắt đầu</button>
+    </div>
+    <div class="student-name" id="studentNameDisplay"></div>
+    <div class="timer" id="timer">5:00</div>
+    <h1>Luyện tập Nguyên Hàm</h1>
     <div class="question-container">
       <div id="question"></div>
       <div class="options" id="options"></div>
-      <button onclick="checkAnswer()">Kiểm tra</button>
+      <button onclick="checkAnswer()" id="checkButton">Kiểm tra</button>
       <button onclick="generateQuestion()">Câu hỏi mới</button>
     </div>
     <div id="result"></div>
@@ -152,12 +232,17 @@
       <div id="totalQuestions">Bạn đã làm được: 0 câu</div>
       <div id="encouragement"></div>
     </div>
+    <div id="endMessage" class="end-message" style="display: none;"></div>
+    <button id="restartButton" class="restart-button" style="display: none;" onclick="restartQuiz()">Làm lại</button>
   </div>
 
   <script>
     let correctAnswer = '';
     let score = 0;
     let totalQuestions = 0;
+    let timeLeft = 300; // tính bằng giây
+    let timerInterval;
+    let quizStarted = false;
     const encouragements = [
       "Tuyệt vời! Bạn đang làm rất tốt! 🌟",
       "Cố gắng lên, bạn sắp đạt được mục tiêu rồi! 💪",
@@ -166,19 +251,77 @@
       "Hãy tiếp tục phát huy nhé! ⭐"
     ];
 
-    // Hàm tính ước chung lớn nhất (GCD)
+    function startQuiz() {
+      const studentName = document.getElementById('studentName').value;
+      if (!studentName) {
+        alert('Vui lòng nhập tên của bạn!');
+        return;
+      }
+      quizStarted = true;
+      document.querySelector('.name-input').style.display = 'none';
+      document.getElementById('studentNameDisplay').textContent = `Học sinh: ${studentName}`;
+      document.querySelector('.timer').style.display = 'block';
+      document.querySelector('.question-container').style.display = 'block';
+      generateQuestion();
+      startTimer();
+    }
+
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById('timer').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          endQuiz();
+        }
+      }, 1000);
+    }
+
+    function endQuiz() {
+      const studentName = document.getElementById('studentName').value;
+      document.getElementById('endMessage').style.display = 'block';
+      document.getElementById('endMessage').innerHTML = `Chúc mừng bạn ${studentName}!<br>Bạn đã làm được ${score} câu đúng trong tổng số ${totalQuestions} câu đã làm.`;
+      document.getElementById('restartButton').style.display = 'block';
+      document.querySelector('.question-container').style.display = 'none';
+    }
+
+    function restartQuiz() {
+      location.reload(); // Tải lại trang để bắt đầu lại bài kiểm tra
+    }
+
+    // Vô hiệu hóa các nút radio và nút "Kiểm tra"
+    function disableOptionsAndCheckButton() {
+      const options = document.querySelectorAll('.options input[type="radio"]');
+      options.forEach(option => {
+        option.disabled = true;
+        option.parentElement.classList.add('disabled'); // Thêm class để thay đổi style
+      });
+      document.getElementById('checkButton').disabled = true;
+    }
+
+    // Kích hoạt lại các nút radio và nút "Kiểm tra"
+    function enableOptionsAndCheckButton() {
+      const options = document.querySelectorAll('.options input[type="radio"]');
+      options.forEach(option => {
+        option.disabled = false;
+        option.parentElement.classList.remove('disabled'); // Xóa class để thay đổi style
+      });
+      document.getElementById('checkButton').disabled = false;
+    }
+
+    // Các hàm hiện có giữ nguyên
     function gcd(a, b) {
       if (!b) return a;
       return gcd(b, a % b);
     }
 
-    // Hàm tối giản phân số
     function simplifyFraction(numerator, denominator) {
       const divisor = gcd(numerator, denominator);
       return [numerator / divisor, denominator / divisor];
     }
 
-    // Hàm hiển thị biểu thức toán học
     function formatExpression(coefficient, variable, exponent) {
       let result = '';
       if (coefficient !== 1) result += coefficient;
@@ -188,7 +331,8 @@
     }
 
     const questionTemplates = [
-      () => {
+      // Các template câu hỏi giữ nguyên
+    () => {
         const k = Math.floor(Math.random() * 10) + 1; // k từ 1 đến 10
         return {
           question: `\\( \\int ${k} dx \\)`,
@@ -310,24 +454,25 @@
           `\\( e^x + x + C \\)`
         ]
       })
+  
     ];
 
     async function generateQuestion() {
+      if (!quizStarted) return;
       const randomIndex = Math.floor(Math.random() * questionTemplates.length);
       const template = questionTemplates[randomIndex]();
 
-      // Lấy câu hỏi và đáp án đúng
       document.getElementById('question').innerHTML = 'Tìm nguyên hàm của: ' + template.question;
       correctAnswer = template.correctAnswer;
 
-      // Tạo các phương án (đáp án đúng + 3 đáp án sai)
       const options = [correctAnswer, ...template.wrongAnswers];
-      displayOptions(options.sort(() => Math.random() - 0.5)); // Xáo trộn đáp án
+      displayOptions(options.sort(() => Math.random() - 0.5));
 
-      // Xóa kết quả trước đó
       document.getElementById('result').innerHTML = '';
 
-      // Render lại MathJax
+      // Kích hoạt lại các nút radio và nút "Kiểm tra"
+      enableOptionsAndCheckButton();
+
       try {
         await MathJax.typesetPromise();
       } catch (e) {
@@ -338,7 +483,7 @@
     function displayOptions(options) {
       const optionsContainer = document.getElementById('options');
       optionsContainer.innerHTML = '';
-      const labels = ['A', 'B', 'C', 'D']; // Thêm chữ A, B, C, D
+      const labels = ['A', 'B', 'C', 'D'];
       for (let i = 0; i < options.length; i++) {
         const option = options[i];
         const label = document.createElement('label');
@@ -351,6 +496,7 @@
     }
 
     async function checkAnswer() {
+      if (!quizStarted) return;
       const selectedAnswer = document.querySelector('input[name="answer"]:checked');
       const resultDiv = document.getElementById('result');
       
@@ -367,9 +513,13 @@
           resultDiv.className = 'incorrect';
           resultDiv.innerHTML = 'Sai rồi. Đáp án đúng là: ' + correctAnswer;
         }
-        document.getElementById('score').innerHTML = `Điểm số: ${score}`;
-        document.getElementById('totalQuestions').innerHTML = `Bạn đã làm được: ${totalQuestions} câu`;
+        const studentNameValue = document.getElementById('studentName').value;
+document.getElementById('score').innerHTML = `Bạn ${studentNameValue} đang được: ${score} điểm`;
+document.getElementById('totalQuestions').innerHTML = `Bạn ${studentNameValue} đã làm được: ${totalQuestions} câu`;
         
+        // Vô hiệu hóa các nút radio và nút "Kiểm tra"
+        disableOptionsAndCheckButton();
+
         try {
           await MathJax.typesetPromise();
         } catch (e) {
@@ -381,7 +531,10 @@
       }
     }
 
-    generateQuestion();
+    // Ẩn các phần tử không cần thiết khi chưa bắt đầu
+    document.querySelector('.timer').style.display = 'none';
+    document.querySelector('.question-container').style.display = 'none';
+    document.getElementById('studentNameDisplay').style.display = 'none';
   </script>
 </body>
 </html>
