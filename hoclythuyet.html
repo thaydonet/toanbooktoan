@@ -207,11 +207,31 @@
             return result;
         }
 
+        // Render công thức toán trong văn bản
+        function renderMathInText(text) {
+            // Tìm các công thức toán trong dấu \\( và \\)
+            const regex = /\\\((.*?)\\\)/g;
+            let match;
+            let lastIndex = 0;
+            let result = '';
+
+            while ((match = regex.exec(text)) !== null) {
+                // Thêm văn bản trước công thức
+                result += text.slice(lastIndex, match.index);
+                // Thêm công thức toán
+                result += `\\(${match[1]}\\)`;
+                lastIndex = regex.lastIndex;
+            }
+            // Thêm phần văn bản còn lại
+            result += text.slice(lastIndex);
+            return result;
+        }
+
         // Cập nhật công thức hiển thị
         function updateFormula() {
             if (formulas.length > 0) {
-                frontContent.innerHTML = `\\(${formulas[currentIndex].front}\\)`;
-                backContent.innerHTML = `\\(${formulas[currentIndex].back}\\)`;
+                frontContent.innerHTML = renderMathInText(formulas[currentIndex].front);
+                backContent.innerHTML = renderMathInText(formulas[currentIndex].back);
                 progress.textContent = `Công thức ${currentIndex + 1}/${formulas.length}`;
                 
                 // Render lại MathJax sau khi cập nhật nội dung
