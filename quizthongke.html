@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài toán Thống kê Trắc nghiệm</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        .problem { margin-bottom: 20px; border: 1px solid #ddd; padding: 10px; border-radius: 8px; }
+        table { border-collapse: collapse; margin: 10px 0; width: 100%; }
+        th, td { border: 1px solid black; padding: 8px; text-align: center; }
+        button { margin-top: 20px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        .question { margin-top: 15px; }
+        .options { display: flex; gap: 15px; margin-top: 10px; }
+        .options label { display: flex; align-items: center; gap: 5px; }
+        .options label span { font-weight: bold; color: #003366; } /* Màu xanh đậm cho A, B, C, D */
+        #result { margin-top: 20px; font-weight: bold; }
+        .correct { font-weight: bold; color: green; } /* Tô đậm câu đúng */
+        .explanation { margin-top: 10px; padding: 10px; background-color: #f9f9f9; border-left: 4px solid #4CAF50; }
+    </style>
+</head>
+<body>
+    <h1>Bài toán Thống kê Trắc nghiệm</h1>
+    <div id="problemContainer"></div>
+    <button onclick="generateProblems()">Tạo bài toán mới</button>
+    <button onclick="submitAnswers()">Nộp bài</button>
+    <div id="result"></div>
+
+    <script>
+        class ThongKe {
+            static data_nhom = [];
+            static data_tanso = [];
+
+            static setData(data_nhom, data_tanso) {
+                this.data_nhom = data_nhom;
+                this.data_tanso = data_tanso;
+            }
+
+            static giaTriTrungBinhNhom() {
+                return this.data_nhom.map(([a, b]) => this.dinhDangSo((a + b) / 2));
+            }
+
+            static tongTanSo() {
+                return this.data_tanso.reduce((a, b) => a + b, 0);
+            }
+
+            static tinhTrungBinh() {
+                const averages = this.giaTriTrungBinhNhom();
+                const total = averages.reduce((sum, avg, i) => sum + avg * this.data_tanso[i], 0);
+                return this.dinhDangSo(total / this.tongTanSo());
+            }
+
+            static tinhMode() {
+                const maxTanSo = Math.max(...this.data_tanso);
+                const index = this.data_tanso.indexOf(maxTanSo);
+                const L_m = this.data_nhom[index][0]; // Giới hạn dưới của nhóm chứa mốt
+                const f_m = this.data_tanso[index]; // Tần số của nhóm chứa mốt
+                const f_m_minus_1 = index > 0 ? this.data_tanso[index - 1] : 0; // Tần số nhóm trước
+                const f_m_plus_1 = index < this.data_tanso.length - 1 ? this.data_tanso[index + 1] : 0; // Tần số nhóm sau
+                const h = this.data_nhom[index][1] - this.data_nhom[index][0]; // Độ dài nhóm
+
+                const mode = L_m + ((f_m - f_m_minus_1) / (2 * f_m - f_m_minus_1 - f_m_plus_1)) * h;
+                return this.dinhDangSo(mode);
+            }
+
+            static tinhPhuongSai() {
+                const mean = this.tinhTrungBinh();
+                const averages = this.giaTriTrungBinhNhom();
+                const total = averages.reduce((sum, avg, i) => sum + this.data_tanso[i] * Math.pow(avg - mean, 2), 0);
+                return this.dinhDangSo(total / this.tongTanSo());
+            }
+
+            static tinhDoLechChuan() {
+                return this.dinhDangSo(Math.sqrt(this.tinhPhuongSai()));
+            }
+
+            static tinhTuPhanVi(quartile) {
+                const N = this.tongTanSo();
+                const cumFreq = this.data_tanso.reduce((acc, freq) => [...acc, (acc[acc.length - 1] || 0) + freq], []);
+                const position = quartile * N;
+                const classIndex = cumFreq.findIndex(cf => cf >= position);
+                if (classIndex === -1) return null;
+
+                const [lower, upper] = this.data_nhom[classIndex];
+                const freqBefore = cumFreq[classIndex - 1] || 0;
+                const classWidth = upper - lower;
+                return this.dinhDangSo(lower + ((position - freqBefore) / this.data_tanso[classIndex]) * classWidth);
+            }
+
+            static tuPhanVi() {
+                return [1/4, 1/2, 3/4].map(q => this.tinhTuPhanVi(q));
+            }
+
+            static dinhDangSo(number) {
+                return Number.isInteger(number) ? number : Number(number.toFixed(2));
+            }
+
+            static taoBangTabular() {
+                const headers = this.data_nhom.map(([a, b]) => `[${a};${b})`);
+                const rows = [
+                    ['Nhóm', ...headers],
+                    ['Tần số', ...this.data_tanso]
+                ];
+                return `<table>
+                    ${rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+                </table>`;
+            }
+        }
+
+        function taoNhomTanSoNgauNhien(soNhom = 6) {
+            const minGiaTri = Math.floor(Math.random() * 51);
+            const doDaiNhom = Math.floor(Math.random() * 11) + 5;
+            const maxTanSo = Math.floor(Math.random() * 26) + 5;
+
+            const nhom = [];
+            const tanSo = [];
+
+            let a = minGiaTri;
+            for (let i = 0; i < soNhom; i++) {
+                const b = a + doDaiNhom;
+                nhom.push([a, b]);
+                a = b;
+                tanSo.push(Math.floor(Math.random() * maxTanSo) + 1);
+            }
+
+            return [nhom, tanSo];
+        }
+
+        function generateOptions(correctAnswer) {
+            const options = [correctAnswer];
+            while (options.length < 4) {
+                const randomOption = correctAnswer + (Math.random() - 0.5) * 10;
+                if (!options.includes(randomOption)) {
+                    options.push(ThongKe.dinhDangSo(randomOption));
+                }
+            }
+            return options.sort(() => Math.random() - 0.5);
+        }
+
+        function generateProblems() {
+            const container = document.getElementById('problemContainer');
+            container.innerHTML = '';
+
+            const soNhom = Math.floor(Math.random() * 2) + 5;
+            const [nhom, tanSo] = taoNhomTanSoNgauNhien(soNhom);
+            ThongKe.setData(nhom, tanSo);
+
+            const problem = document.createElement('div');
+            problem.className = 'problem';
+            problem.innerHTML = `
+                <h2>Câu hỏi</h2>
+                <p>Cho bảng dữ liệu như sau:</p>
+                ${ThongKe.taoBangTabular()}
+                <div class="question">
+                    <p>1. Độ dài nhóm là:</p>
+                    <div class="options">
+                        ${generateOptions(nhom[0][1] - nhom[0][0]).map((opt, i) => `
+                            <label><input type="radio" name="q1" value="${opt}"> <span>${String.fromCharCode(65 + i)}.</span> ${opt}</label>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation1"></div>
+                </div>
+                <div class="question">
+                    <p>2. Cỡ mẫu là:</p>
+                    <div class="options">
+                        ${generateOptions(ThongKe.tongTanSo()).map((opt, i) => `
+                            <label><input type="radio" name="q2" value="${opt}"> <span>${String.fromCharCode(65 + i)}.</span> ${opt}</label>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation2"></div>
+                </div>
+                <div class="question">
+                    <p>3. Khoảng biến thiên là:</p>
+                    <div class="options">
+                        ${generateOptions(nhom[nhom.length - 1][1] - nhom[0][0]).map((opt, i) => `
+                            <label><input type="radio" name="q3" value="${opt}"> <span>${String.fromCharCode(65 + i)}.</span> ${opt}</label>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation3"></div>
+                </div>
+                <div class="question">
+                    <p>4. Giá trị trung bình của dữ liệu là:</p>
+                    <div class="options">
+                        ${generateOptions(ThongKe.tinhTrungBinh()).map((opt, i) => `
+                            <label><input type="radio" name="q4" value="${opt}"> <span>${String.fromCharCode(65 + i)}.</span> ${opt}</label>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation4"></div>
+                </div>
+                <div class="question">
+                    <p>5. Mốt (Mode) của dữ liệu là:</p>
+                    <div class="options">
+                        ${generateOptions(ThongKe.tinhMode()).map((opt, i) => `
+                            <label><input type="radio" name="q5" value="${opt}"> <span>${String.fromCharCode(65 + i)}.</span> ${opt}</label>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation5"></div>
+                </div>
+                <div class="question">
+                    <p>6. Phương sai của dữ liệu là:</p>
+                    <div class="options">
+                        ${generateOptions(ThongKe.tinhPhuongSai()).map((opt, i) => `
+                            <label><input type="radio" name="q6" value="${opt}"> <span>${String.fromCharCode(65 + i)}.</span> ${opt}</label>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation6"></div>
+                </div>
+                <div class="question">
+                    <p>7. Độ lệch chuẩn của dữ liệu là:</p>
+                    <div class="options">
+                        ${generateOptions(ThongKe.tinhDoLechChuan()).map((opt, i) => `
+                            <label><input type="radio" name="q7" value="${opt}"> <span>${String.fromCharCode(65 + i)}.</span> ${opt}</label>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation7"></div>
+                </div>
+                <div class="question">
+                    <p>8. Tứ phân vị thứ nhất (Q1) là:</p>
+                    <div class="options">
+                        ${generateOptions(ThongKe.tuPhanVi()[0]).map((opt, i) => `
+                            <label><input type="radio" name="q8" value="${opt}"> <span>${String.fromCharCode(65 + i)}.</span> ${opt}</label>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation8"></div>
+                </div>
+                <div class="question">
+                    <p>9. Tứ phân vị thứ hai (Q2 - Trung vị) là:</p>
+                    <div class="options">
+                        ${generateOptions(ThongKe.tuPhanVi()[1]).map((opt, i) => `
+                            <label><input type="radio" name="q9" value="${opt}"> <span>${String.fromCharCode(65 + i)}.</span> ${opt}</label>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation9"></div>
+                </div>
+                <div class="question">
+                    <p>10. Tứ phân vị thứ ba (Q3) là:</p>
+                    <div class="options">
+                        ${generateOptions(ThongKe.tuPhanVi()[2]).map((opt, i) => `
+                            <label><input type="radio" name="q10" value="${opt}"> <span>${String.fromCharCode(65 + i)}.</span> ${opt}</label>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation10"></div>
+                </div>
+            `;
+            container.appendChild(problem);
+        }
+
+        function submitAnswers() {
+            const answers = {
+                q1: ThongKe.data_nhom[0][1] - ThongKe.data_nhom[0][0], // Độ dài nhóm
+                q2: ThongKe.tongTanSo(), // Cỡ mẫu
+                q3: ThongKe.data_nhom[ThongKe.data_nhom.length - 1][1] - ThongKe.data_nhom[0][0], // Khoảng biến thiên
+                q4: ThongKe.tinhTrungBinh(), // Giá trị trung bình
+                q5: ThongKe.tinhMode(), // Mốt
+                q6: ThongKe.tinhPhuongSai(), // Phương sai
+                q7: ThongKe.tinhDoLechChuan(), // Độ lệch chuẩn
+                q8: ThongKe.tuPhanVi()[0], // Q1
+                q9: ThongKe.tuPhanVi()[1], // Q2
+                q10: ThongKe.tuPhanVi()[2], // Q3
+            };
+
+            let score = 0;
+            for (let i = 1; i <= 10; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                const correctAnswer = answers[`q${i}`];
+                const explanation = document.getElementById(`explanation${i}`);
+
+                // Tô đậm câu trả lời đúng
+                document.querySelectorAll(`input[name="q${i}"]`).forEach(input => {
+                    if (input.value == correctAnswer) {
+                        input.parentElement.classList.add('correct');
+                    }
+                });
+
+                // Hiển thị lời giải chi tiết
+                let explanationText = '';
+                switch (i) {
+                    case 1:
+                        explanationText = `<strong>Lời giải:</strong> Độ dài nhóm = Số hạng sau - Số hạng đầu = ${ThongKe.data_nhom[0][1]} - ${ThongKe.data_nhom[0][0]} = ${correctAnswer}.`;
+                        break;
+                    case 2:
+                        explanationText = `<strong>Lời giải:</strong> Cỡ mẫu = Tổng tần số = ${ThongKe.tongTanSo()}.`;
+                        break;
+                    case 3:
+                        explanationText = `<strong>Lời giải:</strong> Khoảng biến thiên = Giá trị lớn nhất - Giá trị nhỏ nhất = ${ThongKe.data_nhom[ThongKe.data_nhom.length - 1][1]} - ${ThongKe.data_nhom[0][0]} = ${correctAnswer}.`;
+                        break;
+                    case 4:
+                        explanationText = `<strong>Lời giải:</strong> Giá trị trung bình = (Tổng (giá trị đại diện nhóm * tần số)) / Tổng tần số = ${correctAnswer}.`;
+                        break;
+                    case 5:
+                        explanationText = `<strong>Lời giải:</strong> Mốt (Mode) = L_m + [(f_m - f_{m-1}) / (2f_m - f_{m-1} - f_{m+1})] * h = ${correctAnswer}.`;
+                        break;
+                    case 6:
+                        explanationText = `<strong>Lời giải:</strong> Phương sai = (Tổng (tần số * (giá trị đại diện nhóm - giá trị trung bình)^2)) / Tổng tần số = ${correctAnswer}.`;
+                        break;
+                    case 7:
+                        explanationText = `<strong>Lời giải:</strong> Độ lệch chuẩn = Căn bậc hai của phương sai = ${correctAnswer}.`;
+                        break;
+                    case 8:
+                        explanationText = `<strong>Lời giải:</strong> Tứ phân vị thứ nhất (Q1) được tính bằng công thức: Q1 = L + [(N/4 - F) / f] * h, trong đó L là giới hạn dưới của nhóm chứa Q1, N là tổng tần số, F là tần số tích lũy trước nhóm chứa Q1, f là tần số của nhóm chứa Q1, và h là độ dài nhóm. Kết quả là ${correctAnswer}.`;
+                        break;
+                    case 9:
+                        explanationText = `<strong>Lời giải:</strong> Tứ phân vị thứ hai (Q2 - Trung vị) được tính bằng công thức: Q2 = L + [(N/2 - F) / f] * h. Kết quả là ${correctAnswer}.`;
+                        break;
+                    case 10:
+                        explanationText = `<strong>Lời giải:</strong> Tứ phân vị thứ ba (Q3) được tính bằng công thức: Q3 = L + [(3N/4 - F) / f] * h. Kết quả là ${correctAnswer}.`;
+                        break;
+                }
+                explanation.innerHTML = explanationText;
+
+                if (selected && selected.value == correctAnswer) {
+                    score++;
+                }
+            }
+
+            document.getElementById('result').innerHTML = `Bạn đã đúng ${score}/10 câu.`;
+        }
+
+        // Tạo bài toán khi trang được tải
+        generateProblems();
+    </script>
+</body>
+</html>
