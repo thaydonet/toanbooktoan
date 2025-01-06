@@ -5,19 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bài toán Thống kê Trắc nghiệm</title>
     <style>
-        body { font-family: Verdana, sans-serif; max-width: 800px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);line-height: 1.6; padding: 20px; }
-        .problem { margin-bottom: 20px; border: 1px solid #ddd; padding: 10px; border-radius: 8px; }
-        table { border-collapse: collapse; margin: 10px 0; width: 100%; }
-        th, td { border: 1px solid black; padding: 8px; text-align: center; }
-        button { margin-top: 20px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        /* Reset CSS */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; background-color: #f4f4f4; color: #333; padding: 20px; }
+        h1 { text-align: center; color: #4CAF50; margin-bottom: 20px; font-size: 2.5rem; }
+        .problem { margin-bottom: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padding: 20px; }
+        table { border-collapse: collapse; margin: 10px 0; width: 100%; background-color: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background-color: #4CAF50; color: white; }
+        button { margin-top: 20px; padding: 12px 24px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s ease; }
         button:hover { background-color: #45a049; }
         .question { margin-top: 15px; }
-        .options { display: flex; gap: 15px; margin-top: 10px; }
-        .options label { display: flex; align-items: center; gap: 5px; }
-        .options label span { font-weight: bold; color: #003366; } /* Màu xanh đậm cho A, B, C, D */
-        #result { margin-top: 20px; font-weight: bold; }
-        .correct { font-weight: bold; color: green; } /* Tô đậm câu đúng */
-        .explanation { margin-top: 10px; padding: 10px; background-color: #e8f4f8; border-left: 4px solid #4CAF50; }
+        .options { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .options label { display: flex; align-items: center; gap: 8px; background-color: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; transition: background-color 0.3s ease; flex: 1 1 calc(50% - 10px); }
+        .options label:hover { background-color: #e9e9e9; }
+        .options label span { font-weight: bold; color: #003366; }
+        #result { margin-top: 20px; font-weight: bold; text-align: center; font-size: 1.2rem; color: #4CAF50; }
+        .correct { background-color: #d4edda !important; border-color: #c3e6cb !important; }
+        .explanation { margin-top: 10px; padding: 15px; background-color: #f1f1f1; border-left: 4px solid #4CAF50; border-radius: 5px; font-size: 0.95rem; line-height: 1.5; }
+        .explanation strong { color: #4CAF50; }
+        @media (max-width: 768px) {
+            .options label { flex: 1 1 100%; }
+            h1 { font-size: 2rem; }
+            button { width: 100%; }
+        }
     </style>
 </head>
 <body>
