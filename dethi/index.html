@@ -6,15 +6,33 @@
     <title>App Web Toán Học</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
+    <header>
+        <h1>ỨNG DỤNG TOÁN HỌC 12</h1>
+    </header>
     <div class="container">
         <div class="menu" id="menu">
-            <!-- Các dạng toán sẽ được thêm vào đây bằng JavaScript -->
+            <ul>
+                <li>
+                    <span class="folder">Toán 12</span>
+                    <ul>
+                        <li>
+                            <span class="folder">Chương 1</span>
+                            <ul>
+                                <li><button class="question-type" data-type="dang1">Dạng 1</button></li>
+                                <li><button class="question-type" data-type="dang2">Dạng 2</button></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
         </div>
         <div class="content" id="content">
-            <!-- Nội dung câu hỏi và đáp án sẽ được hiển thị ở đây -->
+            <div class="question-area">
+                <!-- Câu hỏi và đáp án sẽ được hiển thị ở đây -->
+            </div>
         </div>
     </div>
     <script src="script.js"></script>
