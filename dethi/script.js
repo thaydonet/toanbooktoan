@@ -33,23 +33,24 @@ const questionTemplates = [
     }
 ];
 
-const menu = document.getElementById('menu');
 const content = document.getElementById('content');
+const questionArea = content.querySelector('.question-area');
 
-// Tạo menu các dạng toán
-questionTemplates.forEach((template, index) => {
-    const button = document.createElement('button');
-    button.textContent = `Dạng ${index + 1}`;
+// Xử lý sự kiện khi bấm vào dạng toán
+document.querySelectorAll('.question-type').forEach(button => {
     button.addEventListener('click', () => {
-        const questionData = template.generate();
-        displayQuestion(questionData);
+        const type = button.getAttribute('data-type');
+        const template = questionTemplates.find(t => t.type === type);
+        if (template) {
+            const questionData = template.generate();
+            displayQuestion(questionData);
+        }
     });
-    menu.appendChild(button);
 });
 
 // Hiển thị câu hỏi và đáp án
 function displayQuestion(data) {
-    content.innerHTML = `
+    questionArea.innerHTML = `
         <div class="question">${data.question}</div>
         <div class="answer">${data.answer}</div>
     `;
