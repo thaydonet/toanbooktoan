@@ -65,6 +65,11 @@ header h1 {
 .menu ul ul {
     margin-left: 20px;
     margin-top: 5px;
+    display: none; /* Ẩn menu con ban đầu */
+}
+
+.menu ul .open ul {
+    display: block; /* Hiển thị menu con khi mở */
 }
 
 .menu button.question-type {
@@ -81,6 +86,10 @@ header h1 {
 .menu button.question-type:hover {
     background-color: #e0e0e0;
     border-radius: 4px;
+}
+
+.menu button.question-type.checked::before {
+    content: "✅ ";
 }
 
 .content {
