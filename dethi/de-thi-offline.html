@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đề Thi Offline</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Đề Thi Offline</h1>
+    </header>
+    <div class="container">
+        <textarea id="quiz-content"></textarea>
+        <button onclick="downloadQuiz()">Tải về</button>
+    </div>
+    <script>
+        // Lấy nội dung đề thi từ localStorage
+        const quizContent = localStorage.getItem('offlineQuizContent') || "Không có đề thi nào được tạo!";
+        document.getElementById('quiz-content').value = quizContent;
+
+        // Hàm tải về đề thi
+        function downloadQuiz() {
+            const content = document.getElementById('quiz-content').value;
+            const quizId = Math.random().toString(36).substring(7); // Tạo ID ngẫu nhiên
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `de-toan-do-${quizId}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

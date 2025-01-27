@@ -11,23 +11,30 @@
 <body>
     <header>
         <h1>ỨNG DỤNG TOÁN HỌC</h1>
+        <div class="actions">
+            <button onclick="startOnlineQuiz()">Làm Online</button>
+            <div class="offline-input">
+                <input type="number" id="number-of-deals" min="1" placeholder="Nhập số đề">
+                <button onclick="startOfflineQuiz()">Làm Offline</button>
+            </div>
+        </div>
     </header>
     <div class="container">
         <div class="menu" id="menu">
             <ul>
                 <!-- Toán 12 -->
                 <li>
-                    <span class="folder" onclick="toggleFolder(this)">📁 Toán 12</span>
+                    <span class="folder" onclick="toggleFolder(this)">Toán 12</span>
                     <ul>
                         <li>
-                            <span class="folder" onclick="toggleFolder(this)">📁 Chương 1</span>
+                            <span class="folder" onclick="toggleFolder(this)">Chương 1</span>
                             <ul>
                                 <li><button class="question-type" data-type="dang1" onclick="toggleQuestionType(this)">Dạng 1</button></li>
                                 <li><button class="question-type" data-type="dang2" onclick="toggleQuestionType(this)">Dạng 2</button></li>
                             </ul>
                         </li>
                         <li>
-                            <span class="folder" onclick="toggleFolder(this)">📁 Chương 2</span>
+                            <span class="folder" onclick="toggleFolder(this)">Chương 2</span>
                             <ul>
                                 <li><button class="question-type" data-type="dang3" onclick="toggleQuestionType(this)">Dạng 3</button></li>
                                 <li><button class="question-type" data-type="dang4" onclick="toggleQuestionType(this)">Dạng 4</button></li>
@@ -37,10 +44,10 @@
                 </li>
                 <!-- Toán 11 -->
                 <li>
-                    <span class="folder" onclick="toggleFolder(this)">📁 Toán 11</span>
+                    <span class="folder" onclick="toggleFolder(this)">Toán 11</span>
                     <ul>
                         <li>
-                            <span class="folder" onclick="toggleFolder(this)">📁 Chương 1</span>
+                            <span class="folder" onclick="toggleFolder(this)">Chương 1</span>
                             <ul>
                                 <li><button class="question-type" data-type="dang5" onclick="toggleQuestionType(this)">Dạng 5</button></li>
                                 <li><button class="question-type" data-type="dang6" onclick="toggleQuestionType(this)">Dạng 6</button></li>
@@ -50,10 +57,10 @@
                 </li>
                 <!-- Toán 10 -->
                 <li>
-                    <span class="folder" onclick="toggleFolder(this)">📁 Toán 10</span>
+                    <span class="folder" onclick="toggleFolder(this)">Toán 10</span>
                     <ul>
                         <li>
-                            <span class="folder" onclick="toggleFolder(this)">📁 Chương 1</span>
+                            <span class="folder" onclick="toggleFolder(this)">Chương 1</span>
                             <ul>
                                 <li><button class="question-type" data-type="dang7" onclick="toggleQuestionType(this)">Dạng 7</button></li>
                                 <li><button class="question-type" data-type="dang8" onclick="toggleQuestionType(this)">Dạng 8</button></li>

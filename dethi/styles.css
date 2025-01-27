@@ -10,7 +10,7 @@ body {
     background-color: #f4f4f4;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
 }
 
 header {
@@ -24,6 +24,56 @@ header {
 header h1 {
     font-size: 24px;
     font-weight: bold;
+    margin-bottom: 15px;
+}
+
+header .actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    align-items: center;
+}
+
+header .actions button {
+    padding: 10px 20px;
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+header .actions button:hover {
+    background-color: #004080;
+}
+
+header .offline-input {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+header .offline-input input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 100px;
+}
+
+header .offline-input button {
+    padding: 10px 20px;
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+header .offline-input button:hover {
+    background-color: #004080;
 }
 
 .container {
@@ -31,14 +81,15 @@ header h1 {
     flex: 1;
     width: 100%;
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 20px auto;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
 }
 
 .menu {
     width: 250px;
-    padding: 20px;
+    padding: 10px;
     border-right: 1px solid #ddd;
     background-color: #f9f9f9;
     overflow-y: auto;
@@ -49,7 +100,7 @@ header h1 {
 }
 
 .menu ul li {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .menu .folder {
@@ -58,12 +109,8 @@ header h1 {
     cursor: pointer;
 }
 
-.menu .folder::before {
-    content: "📁 ";
-}
-
 .menu ul ul {
-    margin-left: 20px;
+    margin-left: 15px;
     margin-top: 5px;
     display: none; /* Ẩn menu con ban đầu */
 }
@@ -78,7 +125,7 @@ header h1 {
     color: #333;
     cursor: pointer;
     text-align: left;
-    padding: 5px 10px;
+    padding: 5px 8px;
     width: 100%;
     font-size: 14px;
 }
@@ -103,9 +150,17 @@ header h1 {
     margin: 0 auto;
 }
 
+.question-area .question-block {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
 .question-area .question {
     font-size: 18px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     font-weight: bold;
 }
 
@@ -117,16 +172,115 @@ header h1 {
     margin-bottom: 10px;
 }
 
-.question-area .solution {
-    background-color: #f0f8ff;
-    padding: 15px;
-    border-radius: 5px;
-    border: 1px solid #007bff;
+.question-area .answers input[type="radio"] {
+    margin-right: 10px;
+}
+
+.result-area {
     margin-top: 20px;
 }
 
-.question-area .solution h3 {
+.result-area h2 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.result-area .result-block {
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.result-area .result-block.correct {
+    background-color: #e6f4ea;
+    border: 1px solid #4caf50;
+}
+
+.result-area .result-block.incorrect {
+    background-color: #ffebee;
+    border: 1px solid #f44336;
+}
+
+.result-area .result-block.unanswered {
+    background-color: #fff3e0;
+    border: 1px solid #ff9800;
+}
+
+.result-area .question {
     font-size: 16px;
-    color: #007bff;
+    font-weight: bold;
     margin-bottom: 10px;
+}
+
+.result-area .answer {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.result-area .correct-answer {
+    font-size: 14px;
+    color: #007bff;
+}
+
+.result-area .solution {
+    font-size: 14px;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f0f8ff;
+    border: 1px solid #007bff;
+    border-radius: 5px;
+}
+
+.result-area .score {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Style cho trang đề thi offline */
+textarea {
+    width: 100%;
+    height: 400px;
+    padding: 15px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    resize: vertical; /* Cho phép chỉnh sửa chiều cao */
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .quiz-area .question {
+        font-size: 16px;
+    }
+
+    .quiz-area .answers .answer {
+        font-size: 14px;
+    }
+
+    .actions button {
+        width: 100%;
+        padding: 15px;
+    }
 }
