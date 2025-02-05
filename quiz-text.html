@@ -2,8 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Tạo đề toán với placeholder</title>
-  <!-- Google Fonts (tùy chọn) -->
+  <title>Tạo đề toán trắc nghiệm</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
   <style>
     body {
@@ -27,20 +26,19 @@
       margin-top: 15px;
       font-weight: bold;
     }
-    textarea, input[type="number"] {
+    textarea, input {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
       border: 1px solid #ccc;
       border-radius: 4px;
-      box-sizing: border-box;
       font-size: 16px;
     }
     button {
       display: block;
       width: 150px;
       padding: 10px;
-      margin: 20px auto;
+      margin: 10px auto;
       background-color: #4CAF50;
       color: white;
       border: none;
@@ -55,70 +53,76 @@
       margin-bottom: 20px;
       padding: 15px;
       border: 1px solid #ddd;
-      border-radius: 4px;
       background-color: #f5f5f5;
     }
-    .question-text {
-      margin-bottom: 10px;
-    }
     .solution {
-      margin-top: 10px;
       font-style: italic;
       color: #555;
     }
+    .answer-table {
+      margin-top: 20px;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .answer-table th, .answer-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    .answer-table th {
+      background-color: #4CAF50;
+      color: white;
+    }
   </style>
   
-  <!-- MathJax để render công thức LaTeX -->
-  <script>
-    window.MathJax = {
-      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
-      svg: { fontCache: 'global' }
-    };
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-  
-  <!-- Thư viện math.js để tính toán và đơn giản biểu thức -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>Tạo đề toán với placeholder</h1>
-    
-    <!-- Nhập mẫu bài toán -->
-    <label for="problemTemplate">Nhập mẫu bài toán:</label>
-    <textarea id="problemTemplate" rows="10">
-Có số $ {x} $ và số $ {y} $. Kết quả nào đúng cho $ {calc: x+y} = $ ?
-A. $ {calc: x+y} $ (*câu đúng*)
-B. $ {calc: x-y} $
-C. $ {calc: 2*x+y} $
-D. Kết quả sai.
+    <h1>Tạo đề toán trắc nghiệm</h1>
 
-Lời giải: Ta có kết quả là $ {calc: x+y} $ (câu đúng).
+    <label for="problemTemplate">Nhập mẫu bài toán:</label>
+    <textarea id="problemTemplate" rows="8">
+Có số {x} và số {y}. Kết quả nào đúng cho {calc: x+y}?
+A. {calc: x+y}
+B. {calc: x-y}
+C. {calc: 2*x+y}
+D. {calc: x*y}
+    
+Lời giải: Kết quả đúng là {calc: x+y}.
     </textarea>
-    
-    <!-- Số câu cần tạo -->
-    <label for="numQuestions">Nhập số câu cần tạo:</label>
+
+    <label for="numQuestions">Số câu cần tạo:</label>
     <input type="number" id="numQuestions" min="1" max="20" value="5">
-    
+
     <button id="generateBtn">Tạo đề</button>
-    
-    <!-- Khu vực hiển thị đề toán -->
+    <button id="downloadBtn" style="display: none;">Tải đề</button>
+
     <div id="examArea"></div>
+
+    <h2>Bảng đáp án</h2>
+    <table class="answer-table" id="answerTable">
+      <tr><th>Câu</th><th>Đáp án đúng</th></tr>
+    </table>
   </div>
-  
+
   <script>
-    // Hàm sinh số nguyên ngẫu nhiên trong khoảng [min, max] (bao gồm cả số âm)
     function getRandomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    // Lấy danh sách các biến dưới dạng {x}, {y},... từ mẫu (loại trừ các placeholder calc)
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
     function extractVariables(template) {
       const varRegex = /{([a-zA-Z]\w*)}/g;
       let match;
       const vars = new Set();
       while ((match = varRegex.exec(template)) !== null) {
-        // Nếu tên biến bắt đầu bằng "calc" thì bỏ qua
         if (!match[1].startsWith("calc")) {
           vars.add(match[1]);
         }
@@ -126,67 +130,79 @@ Lời giải: Ta có kết quả là $ {calc: x+y} $ (câu đúng).
       return Array.from(vars);
     }
 
-    // Thay thế các placeholder {x} trong template bằng giá trị số đã gán
     function replaceVariables(template, variables) {
-      return template.replace(/{([a-zA-Z]\w*)}/g, function(match, p1) {
-        if (p1 in variables) {
-          return variables[p1];
-        }
-        return match;  // Nếu không có biến nào, giữ nguyên (đối với {calc: ...})
-      });
+      return template.replace(/{([a-zA-Z]\w*)}/g, (match, p1) => variables[p1] ?? match);
     }
 
-    // Tính các biểu thức có dạng {calc: biểu_thức} trong mẫu bằng math.js
     function evaluateCalculations(template, variables) {
       const calcRegex = /{calc:\s*([^}]+)}/g;
-      return template.replace(calcRegex, function(match, expr) {
+      return template.replace(calcRegex, (match, expr) => {
         try {
-          let result = math.evaluate(expr, variables);
-          // Nếu muốn hiển thị dưới dạng số nguyên, bạn có thể làm tròn:
-          if (Number.isFinite(result)) {
-            result = math.format(result, {precision: 14});
-          }
-          return result;
+          return math.evaluate(expr, variables);
         } catch (e) {
-          console.error("Lỗi đánh giá biểu thức:", expr, e);
           return match;
         }
       });
     }
 
-    // Hàm tạo một câu hỏi dựa theo mẫu, với số liệu ngẫu nhiên cho các biến
     function createQuestion(index, template) {
-      // Lấy danh sách tên biến từ mẫu (ví dụ: x, y)
       const varNames = extractVariables(template);
-      // Gán giá trị ngẫu nhiên cho từng biến trong khoảng -10 đến 10
       const variables = {};
-      varNames.forEach(varName => {
-        variables[varName] = getRandomInt(-10, 10);
-      });
-      
-      // Thay thế các placeholder biến và tính các biểu thức calc
+      varNames.forEach(varName => variables[varName] = getRandomInt(-10, 10));
+
       let questionStr = replaceVariables(template, variables);
       questionStr = evaluateCalculations(questionStr, variables);
-      
-      // Tạo HTML cho câu hỏi
-      return `<div class="question">
-                <div class="question-text"><strong>Câu ${index}:</strong><br>${questionStr}</div>
-              </div>`;
+
+      const answerMatches = questionStr.match(/A\.\s*(.+?)\nB\.\s*(.+?)\nC\.\s*(.+?)\nD\.\s*(.+?)(\n|$)/);
+      if (!answerMatches) return '';
+
+      let answers = [
+        { key: 'A', value: answerMatches[1] },
+        { key: 'B', value: answerMatches[2] },
+        { key: 'C', value: answerMatches[3] },
+        { key: 'D', value: answerMatches[4] }
+      ];
+
+      let correctAnswer = answers[0].key; // Câu A là đáp án đúng theo mẫu
+      shuffleArray(answers);
+      let newCorrectAnswer = answers.find(a => a.value === answerMatches[1]).key;
+
+      let formattedQuestion = `
+        <div class="question">
+          <div><strong>Câu ${index}:</strong><br>${questionStr.replace(answerMatches[0], '')}</div>
+          A. ${answers[0].value} <br>
+          B. ${answers[1].value} <br>
+          C. ${answers[2].value} <br>
+          D. ${answers[3].value} <br>
+        </div>`;
+
+      return { html: formattedQuestion, correct: newCorrectAnswer };
     }
 
-    document.getElementById('generateBtn').addEventListener('click', function() {
+    document.getElementById('generateBtn').addEventListener('click', () => {
       const template = document.getElementById('problemTemplate').value;
       const num = parseInt(document.getElementById('numQuestions').value);
       const examArea = document.getElementById('examArea');
-      examArea.innerHTML = ""; // Xóa nội dung đề cũ
+      const answerTable = document.getElementById('answerTable');
+      examArea.innerHTML = '';
+      answerTable.innerHTML = '<tr><th>Câu</th><th>Đáp án đúng</th></tr>';
+      let questionsText = '';
 
-      // Tạo từng câu hỏi dựa theo mẫu đã cho
       for (let i = 1; i <= num; i++) {
-        examArea.innerHTML += createQuestion(i, template);
+        let { html, correct } = createQuestion(i, template);
+        examArea.innerHTML += html;
+        answerTable.innerHTML += `<tr><td>${i}</td><td>${correct}</td></tr>`;
+        questionsText += `Câu ${i}:\n${html.replace(/<\/?[^>]+(>|$)/g, '')}\n\n`;
       }
 
-      // Sau khi thêm nội dung mới, yêu cầu MathJax render lại các công thức LaTeX
-      MathJax.typesetPromise();
+      document.getElementById('downloadBtn').style.display = 'block';
+      document.getElementById('downloadBtn').onclick = () => {
+        const blob = new Blob([questionsText], { type: "text/plain" });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'de_toan.txt';
+        link.click();
+      };
     });
   </script>
 </body>
