@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Tạo đề toán với placeholder</title>
+  <!-- Google Fonts (tùy chọn) -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    textarea, input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    button {
+      display: block;
+      width: 150px;
+      padding: 10px;
+      margin: 20px auto;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .question {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f5f5f5;
+    }
+    .question-text {
+      margin-bottom: 10px;
+    }
+    .solution {
+      margin-top: 10px;
+      font-style: italic;
+      color: #555;
+    }
+  </style>
+  
+  <!-- MathJax để render công thức LaTeX -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  
+  <!-- Thư viện math.js để tính toán và đơn giản biểu thức -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Tạo đề toán với placeholder</h1>
+    
+    <!-- Nhập mẫu bài toán -->
+    <label for="problemTemplate">Nhập mẫu bài toán:</label>
+    <textarea id="problemTemplate" rows="10">
+Có số $ {x} $ và số $ {y} $. Kết quả nào đúng cho $ {calc: x+y} = $ ?
+A. $ {calc: x+y} $ (*câu đúng*)
+B. $ {calc: x-y} $
+C. $ {calc: 2*x+y} $
+D. Kết quả sai.
+
+Lời giải: Ta có kết quả là $ {calc: x+y} $ (câu đúng).
+    </textarea>
+    
+    <!-- Số câu cần tạo -->
+    <label for="numQuestions">Nhập số câu cần tạo:</label>
+    <input type="number" id="numQuestions" min="1" max="20" value="5">
+    
+    <button id="generateBtn">Tạo đề</button>
+    
+    <!-- Khu vực hiển thị đề toán -->
+    <div id="examArea"></div>
+  </div>
+  
+  <script>
+    // Hàm sinh số nguyên ngẫu nhiên trong khoảng [min, max] (bao gồm cả số âm)
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Lấy danh sách các biến dưới dạng {x}, {y},... từ mẫu (loại trừ các placeholder calc)
+    function extractVariables(template) {
+      const varRegex = /{([a-zA-Z]\w*)}/g;
+      let match;
+      const vars = new Set();
+      while ((match = varRegex.exec(template)) !== null) {
+        // Nếu tên biến bắt đầu bằng "calc" thì bỏ qua
+        if (!match[1].startsWith("calc")) {
+          vars.add(match[1]);
+        }
+      }
+      return Array.from(vars);
+    }
+
+    // Thay thế các placeholder {x} trong template bằng giá trị số đã gán
+    function replaceVariables(template, variables) {
+      return template.replace(/{([a-zA-Z]\w*)}/g, function(match, p1) {
+        if (p1 in variables) {
+          return variables[p1];
+        }
+        return match;  // Nếu không có biến nào, giữ nguyên (đối với {calc: ...})
+      });
+    }
+
+    // Tính các biểu thức có dạng {calc: biểu_thức} trong mẫu bằng math.js
+    function evaluateCalculations(template, variables) {
+      const calcRegex = /{calc:\s*([^}]+)}/g;
+      return template.replace(calcRegex, function(match, expr) {
+        try {
+          let result = math.evaluate(expr, variables);
+          // Nếu muốn hiển thị dưới dạng số nguyên, bạn có thể làm tròn:
+          if (Number.isFinite(result)) {
+            result = math.format(result, {precision: 14});
+          }
+          return result;
+        } catch (e) {
+          console.error("Lỗi đánh giá biểu thức:", expr, e);
+          return match;
+        }
+      });
+    }
+
+    // Hàm tạo một câu hỏi dựa theo mẫu, với số liệu ngẫu nhiên cho các biến
+    function createQuestion(index, template) {
+      // Lấy danh sách tên biến từ mẫu (ví dụ: x, y)
+      const varNames = extractVariables(template);
+      // Gán giá trị ngẫu nhiên cho từng biến trong khoảng -10 đến 10
+      const variables = {};
+      varNames.forEach(varName => {
+        variables[varName] = getRandomInt(-10, 10);
+      });
+      
+      // Thay thế các placeholder biến và tính các biểu thức calc
+      let questionStr = replaceVariables(template, variables);
+      questionStr = evaluateCalculations(questionStr, variables);
+      
+      // Tạo HTML cho câu hỏi
+      return `<div class="question">
+                <div class="question-text"><strong>Câu ${index}:</strong><br>${questionStr}</div>
+              </div>`;
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', function() {
+      const template = document.getElementById('problemTemplate').value;
+      const num = parseInt(document.getElementById('numQuestions').value);
+      const examArea = document.getElementById('examArea');
+      examArea.innerHTML = ""; // Xóa nội dung đề cũ
+
+      // Tạo từng câu hỏi dựa theo mẫu đã cho
+      for (let i = 1; i <= num; i++) {
+        examArea.innerHTML += createQuestion(i, template);
+      }
+
+      // Sau khi thêm nội dung mới, yêu cầu MathJax render lại các công thức LaTeX
+      MathJax.typesetPromise();
+    });
+  </script>
+</body>
+</html>
