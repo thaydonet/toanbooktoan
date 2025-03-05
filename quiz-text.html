@@ -77,7 +77,7 @@
   </style>
   
   <!-- Thêm thư viện MathJax -->
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+
 <script>
 MathJax = {
 tex: {
@@ -97,11 +97,12 @@ fontCache: 'global'
     <label for="problemTemplate">Nhập mẫu bài toán:</label>
     <textarea id="problemTemplate" rows="8">
 Có phương trình ${a}x^2+{b}x+{c}=0$. Tìm nghiệm của phương trình.
-A. {calc: (-b + sqrt(b*b - 4*a*c)) / (2*a)}.
-B. {calc: a^3}. luy thua
-C. {calc: b!}. giai thừa
-D. {calc: sin(c)}.
-Lời giải: Phương trình có nghiệm là $x_1 = {calc: (-b + sqrt(b*b - 4*a*c)) / (2*a)}$ và $x_2 = {calc: (-b - sqrt(b*b - 4*a*c)) / (2*a)}$.
+A. {calc: 16^(1/3)}. can bac 3
+B. {calc: 12 cm to inch}. luy thua
+C. {calc: log(8,2)}. logarit
+D. {calc: sin(60 deg)}. sin60
+
+Lời giải: test các phép toán {calc: 1/2 + 2/3}. 
     </textarea>
     <label for="numQuestions">Số câu cần tạo:</label>
     <input type="number" id="numQuestions" min="1" max="20" value="5">
