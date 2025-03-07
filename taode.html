@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Tạo đề toán trắc nghiệm</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    button {
+      display: block;
+      width: 150px;
+      padding: 10px;
+      margin: 10px auto;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .question {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      background-color: #f5f5f5;
+    }
+    .solution {
+      font-style: italic;
+      color: #555;
+    }
+    .answer-table {
+      margin-top: 20px;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .answer-table th, .answer-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    .answer-table th {
+      background-color: #4CAF50;
+      color: white;
+    }
+  </style>
+  
+  <!-- Thêm thư viện MathJax -->
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script type="text/javascript" id="MathJax-script" async src="https://math.booktoan.com/mathjax/es5/tex-mml-svg.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Tạo đề toán trắc nghiệm 1.2</h1>
+    <label for="problemTemplate">Nhập mẫu bài toán:</label>
+    <textarea id="problemTemplate" rows="8">
+Có phương trình ${a*0}x^3+{b:-5:5}x^2+{c}x+{t}=0$. Tìm đạo hàm của phương trình.
+A. {calc: derivative('{a*0}x^3+{b:-5:5}x^2+{c}x+{t}', 'x')}.
+B. {calc: a^3}.
+C. {calc: b!}.
+D. {calc: sin(c)}.
+Lời giải: Đạo hàm là ${calc: derivative('{a*0}x^3+{b:-5:5}x^2+{c}x+{t}', 'x')}$.
+    </textarea>
+    <label for="numQuestions">Số câu cần tạo:</label>
+    <input type="number" id="numQuestions" min="1" max="20" value="5">
+    <button id="generateBtn">Tạo đề</button>
+    <button id="downloadBtn" style="display: none;">Tải đề</button>
+    <div id="examArea"></div>
+    <h2>Bảng đáp án</h2>
+    <table class="answer-table" id="answerTable">
+      <tr><th>Câu</th><th>Đáp án đúng</th></tr>
+    </table>
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+  <script>
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    function getRandomNonZero(min, max) {
+      let value;
+      do {
+        value = getRandomInt(min, max);
+      } while (value === 0);
+      return value;
+    }
+    function shuffleArray(array) {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    }
+    function extractVariables(template) {
+      const varRegex = /{([a-zA-Z]\w*(?:\*-?\d+|\:-?\d+:-?\d+)?)}/g;
+      let match;
+      const vars = new Set();
+      while ((match = varRegex.exec(template)) !== null) {
+        if (!match[1].startsWith("calc")) {
+          const varName = match[1].split(/[:*]/)[0];
+          vars.add(varName);
+        }
+      }
+      return Array.from(vars);
+    }
+    function replaceVariables(template, variables) {
+      return template.replace(/{([a-zA-Z]\w*(?:\*-?\d+|\:-?\d+:-?\d+)?)}/g, (match, p1) => {
+        const varName = p1.split(/[:*]/)[0];
+        return variables[varName] ?? match;
+      });
+    }
+    function evaluateCalculations(template, variables) {
+      const calcRegex = /{calc:\s*([^}]+)}/g;
+      return template.replace(calcRegex, (match, expr) => {
+        try {
+          if (expr.includes("derivative")) {
+            const derivativeMatch = expr.match(/derivative\('([^']+)',\s*'([^']+)'\)/);
+            if (derivativeMatch) {
+              let funcTemplate = derivativeMatch[1];
+              const varName = derivativeMatch[2];
+              // Thay thế biến trong biểu thức đạo hàm
+              const func = replaceVariables(funcTemplate, variables);
+              const derivative = math.derivative(func, varName).toString();
+              return derivative;
+            }
+          }
+          return math.evaluate(expr, variables);
+        } catch (e) {
+          return `[Lỗi: ${e.message}]`;
+        }
+      });
+    }
+    function simplifyExpression(expr) {
+      try {
+        return math.simplify(expr).toString();
+      } catch (e) {
+        return expr;
+      }
+    }
+
+    function lamdepbt(bt) {
+      const exprRegex = /([^=]+)=0/;
+      const match = bt.match(exprRegex);
+      if (!match) return { template: bt, variables: {} };
+
+      const expr = match[1];
+      const terms = expr.split(/(?=[+-])/).map(term => term.trim());
+
+      const varNames = extractVariables(bt);
+      const variables = {};
+      varNames.forEach(varName => {
+        const varMatch = bt.match(new RegExp(`{${varName}(?:\\*0|\\:(-?\\d+):(-?\\d+))?}`));
+        if (varMatch) {
+          if (varMatch[0].includes("*0")) {
+            variables[varName] = getRandomNonZero(-10, 10);
+          } else if (varMatch[1] && varMatch[2]) {
+            const min = parseInt(varMatch[1]);
+            const max = parseInt(varMatch[2]);
+            variables[varName] = getRandomInt(min, max);
+          } else {
+            variables[varName] = getRandomInt(-10, 10);
+          }
+        } else {
+          variables[varName] = getRandomInt(-10, 10);
+        }
+      });
+
+      let processedExpr = replaceVariables(expr, variables);
+      let newTerms = processedExpr.split(/(?=[+-])/).map(term => term.trim());
+      let resultTerms = [];
+      let constantSum = 0;
+
+      for (let i = 0; i < newTerms.length; i++) {
+        let term = newTerms[i];
+        let sign = term[0] === '-' ? -1 : 1;
+        term = term.replace(/^[+-]/, '');
+
+        const termRegex = /^(\d+)?(?:([a-zA-Z])\^(\d+)|([a-zA-Z]))?$/;
+        const matches = term.match(termRegex);
+
+        if (matches) {
+          let coef = matches[1] ? parseInt(matches[1]) : 1;
+          let variable = matches[2] || matches[4] || '';
+          let power = matches[3] ? parseInt(matches[3]) : (variable ? 1 : 0);
+
+          coef *= sign;
+
+          if (power === 0) {
+            constantSum += coef;
+          } else if (coef !== 0) {
+            resultTerms.push({ coef, variable, power });
+          }
+        } else {
+          resultTerms.push({ coef: sign, variable: term, power: 0 });
+        }
+      }
+
+      let result = '';
+      for (let i = 0; i < resultTerms.length; i++) {
+        const { coef, variable, power } = resultTerms[i];
+        if (power === 0) {
+          if (coef > 0 && i > 0) result += `+${coef}${variable}`;
+          else result += `${coef}${variable}`;
+        } else if (coef === 1 && i > 0) {
+          result += `+${variable}${power > 1 ? `^${power}` : ''}`;
+        } else if (coef === 1 && i === 0) {
+          result += `${variable}${power > 1 ? `^${power}` : ''}`;
+        } else if (coef === -1 && power > 0) {
+          result += `-${variable}${power > 1 ? `^${power}` : ''}`;
+        } else {
+          if (coef > 0 && i > 0) result += `+${coef}${variable}${power > 1 ? `^${power}` : ''}`;
+          else result += `${coef}${variable}${power > 1 ? `^${power}` : ''}`;
+        }
+      }
+
+      if (constantSum !== 0) {
+        if (constantSum > 0 && result.length > 0) result += `+${constantSum}`;
+        else result += `${constantSum}`;
+      }
+
+      if (result === '') result = '0';
+      result += '=0';
+
+      const newTemplate = bt.replace(exprRegex, result);
+      return { template: newTemplate, variables: variables };
+    }
+
+    function createQuestion(index, template) {
+      const { template: processedTemplate, variables } = lamdepbt(template);
+      let questionStr = evaluateCalculations(processedTemplate, variables);
+      
+      const parts = questionStr.split('\n\n');
+      const questionPart = parts[0];
+      const solutionPart = parts[1] || '';
+      const answerMatches = questionPart.match(/A\.\s*(.+?)\nB\.\s*(.+?)\nC\.\s*(.+?)\nD\.\s*(.+?)(\n|$)/);
+      if (!answerMatches) return '';
+      const correctValue = answerMatches[1].trim();
+      const answers = [
+        answerMatches[1].trim(),
+        answerMatches[2].trim(),
+        answerMatches[3].trim(),
+        answerMatches[4].trim()
+      ];
+      const shuffledAnswers = shuffleArray(answers);
+      const correctIndex = shuffledAnswers.indexOf(correctValue);
+      const correctLetter = ['A', 'B', 'C', 'D'][correctIndex];
+      const questionContent = questionPart.split('\n')[0];
+      const solution = solutionPart.trim() || '';
+      let formattedQuestion = `
+        <div class="question">
+          <div><strong>Câu ${index}:</strong><br>${questionContent}</div>
+          A. ${shuffledAnswers[0]}<br>
+          B. ${shuffledAnswers[1]}<br>
+          C. ${shuffledAnswers[2]}<br>
+          D. ${shuffledAnswers[3]}<br>
+          <div class="solution">${solution}</div>
+        </div>`;
+      return { html: formattedQuestion, correct: correctLetter, solution: solution };
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', () => {
+      const template = document.getElementById('problemTemplate').value;
+      const num = parseInt(document.getElementById('numQuestions').value);
+      const examArea = document.getElementById('examArea');
+      const answerTable = document.getElementById('answerTable');
+      examArea.innerHTML = '';
+      answerTable.innerHTML = '<tr><th>Câu</th><th>Đáp án đúng</th></tr>';
+      let questionsText = '';
+      let answersText = 'Bảng đáp án:\nCâu | Đáp án\n----|--------\n';
+
+      for (let i = 1; i <= num; i++) {
+        let { html, correct, solution } = createQuestion(i, template);
+        examArea.innerHTML += html;
+        answerTable.innerHTML += `<tr><td>${i}</td><td>${correct}</td></tr>`;
+        
+        let plainText = html.replace(/<\/?[^>]+(>|$)/g, '');
+        plainText = plainText.replace(/^\s+/gm, '');
+        questionsText += `Câu ${i}:\n${plainText}\n\n`;
+        answersText += `${i}   | ${correct}\n`;
+      }
+
+      document.getElementById('downloadBtn').style.display = 'block';
+      document.getElementById('downloadBtn').onclick = () => {
+        const fullText = questionsText + '\n' + answersText;
+        const blob = new Blob([fullText], { type: "text/plain" });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'de_toan.txt';
+        link.click();
+      };
+      
+      MathJax.typesetPromise();
+    });
+  </script>
+</body>
+</html>
