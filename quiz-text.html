@@ -200,38 +200,40 @@ Lời giải: Đạo hàm là ${calc: derivative('{b}x^2+{c}x+{t}', 'x').toStrin
         </div>`;
       return { html: formattedQuestion, correct: correctLetter, solution: solution };
     }
-    document.getElementById('generateBtn').addEventListener('click', () => {
-      const template = document.getElementById('problemTemplate').value;
-      const num = parseInt(document.getElementById('numQuestions').value);
-      const examArea = document.getElementById('examArea');
-      const answerTable = document.getElementById('answerTable');
-      examArea.innerHTML = '';
-      answerTable.innerHTML = '<tr><th>Câu</th><th>Đáp án đúng</th></tr>';
-      let questionsText = '';
-      let answersText = 'Bảng đáp án:\nCâu | Đáp án\n----|--------\n';
-      for (let i = 1; i <= num; i++) {
-        let { html, correct, solution } = createQuestion(i, template);
-        examArea.innerHTML += html;
-        answerTable.innerHTML += `<tr><td>${i}</td><td>${correct}</td></tr>`;
-        
-        // Xử lý text cho file txt
-        let plainText = html.replace(/<\/?[^>]+(>|$)/g, '');
-        plainText = plainText.replace(/^\s+/gm, ''); // Bỏ khoảng trắng đầu dòng
-        questionsText += `\n${plainText}\n\n`;
-        answersText += `${i} | ${correct}\n`;
-      }
-      document.getElementById('downloadBtn').style.display = 'block';
-      document.getElementById('downloadBtn').onclick = () => {
-        const blob = new Blob([questionsText], { type: "text/plain" });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'de_toan.txt';
-        link.click();
-      };
-      
-      // Render MathJax
-      MathJax.typesetPromise();
-    });
-  </script>
+   // Xử lý sự kiện
+document.getElementById('generateBtn').addEventListener('click', () => {
+  const template = document.getElementById('problemTemplate').value;
+  const num = parseInt(document.getElementById('numQuestions').value);
+  const examArea = document.getElementById('examArea');
+  const answerTable = document.getElementById('answerTable');
+
+  examArea.innerHTML = '';
+  answerTable.innerHTML = '<tr><th>Câu</th><th>Đáp án đúng</th></tr>';
+
+  let questionsText = '';
+  let answersText = 'Bảng đáp án:\nCâu | Đáp án\n----|--------\n';
+
+  for (let i = 1; i <= num; i++) {
+    const { html, correct, solution } = createQuestion(i, template);
+    examArea.innerHTML += html;
+    answerTable.innerHTML += `<tr><td>${i}</td><td>${correct}</td></tr>`;
+
+    let plainText = html.replace(/<\/?[^>]+(>|$)/g, '');
+    plainText = plainText.replace(/^\s+/gm, '');
+    questionsText += `Câu ${i}:\n${plainText}\n\n`;
+    answersText += `${i} | ${correct}\n`;
+  }
+
+  document.getElementById('downloadBtn').style.display = 'block';
+  document.getElementById('downloadBtn').onclick = () => {
+    const blob = new Blob([questionsText + '\n' + answersText], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'de_toan.txt';
+    link.click();
+  };
+  MathJax.typesetPromise();
+});
+</script>
 </body>
 </html>
