@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"> <!-- Thêm charset để hỗ trợ tiếng Việt -->
+    <title>Cờ Caro</title>
+    <style>
+        .board {
+            display: grid;
+            gap: 1px;
+            background-color: #ccc;
+            padding: 1px;
+            width: fit-content;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .cell.x::after {
+            content: 'X';
+            font-size: 24px;
+            color: red;
+        }
+        .cell.o::after {
+            content: 'O';
+            font-size: 24px;
+            color: blue;
+        }
+        #status {
+            margin: 20px 0;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div><h3>APP WEB CHƠI CỜ CARO</h3></div>
+    <div id="status">Lượt của bạn (X)</div>
+    <div id="board" class="board"></div>
+    <button onclick="resetGame()">Chơi lại</button>
+
+    <script>
+        const BOARD_SIZE = 15;
+        const WIN_LENGTH = 5;
+        let board = [];
+        let currentPlayer = 'x';
+        let gameOver = false;
+
+        // Khởi tạo bàn cờ
+        function initBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 30px)`;
+            
+            board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(''));
+            
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.addEventListener('click', handleCellClick);
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        // Xử lý khi click vào ô
+        function handleCellClick(e) {
+            if (gameOver) return;
+            
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+            
+            if (board[row][col] === '') {
+                makeMove(row, col, 'x');
+                
+                if (!gameOver) {
+                    setTimeout(computerMove, 500);
+                }
+            }
+        }
+
+        // Thực hiện nước đi
+        function makeMove(row, col, player) {
+            board[row][col] = player;
+            const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+            cell.classList.add(player);
+            
+            if (checkWin(row, col, player)) {
+                gameOver = true;
+                document.getElementById('status').textContent = `${player.toUpperCase()} thắng!`;
+                return;
+            }
+            
+            if (checkDraw()) {
+                gameOver = true;
+                document.getElementById('status').textContent = 'Hòa!';
+                return;
+            }
+            
+            currentPlayer = currentPlayer === 'x' ? 'o' : 'x';
+            if (!gameOver) {
+                document.getElementById('status').textContent = 
+                    `Lượt của ${currentPlayer === 'x' ? 'bạn (X)' : 'máy (O)'}`;
+            }
+        }
+
+        // Nước đi của máy (AI thông minh hơn)
+        function computerMove() {
+            let bestMove = findBestMove();
+            if (bestMove) {
+                makeMove(bestMove.row, bestMove.col, 'o');
+            }
+        }
+
+        // Đánh giá điểm số cho một nước đi
+        function evaluateMove(row, col, player, opponent) {
+            let score = 0;
+            const directions = [
+                { dr: 0, dc: 1 },  // Ngang
+                { dr: 1, dc: 0 },  // Dọc
+                { dr: 1, dc: 1 },  // Chéo chính
+                { dr: 1, dc: -1 }  // Chéo phụ
+            ];
+
+            // Điểm cơ bản cho vị trí (gần trung tâm thì điểm cao hơn)
+            const center = Math.floor(BOARD_SIZE / 2);
+            const distanceToCenter = Math.abs(row - center) + Math.abs(col - center);
+            score += (BOARD_SIZE - distanceToCenter) * 10;
+
+            for (const { dr, dc } of directions) {
+                // Đếm chuỗi của mình
+                let myCount = 1;
+                let myOpenEnds = 0;
+                // Đếm chuỗi của đối thủ
+                let oppCount = 1;
+                let oppOpenEnds = 0;
+
+                // Đếm về phía trước
+                for (let i = 1; i < WIN_LENGTH; i++) {
+                    const newRow = row + i * dr;
+                    const newCol = col + i * dc;
+                    if (newRow >= BOARD_SIZE || newCol >= BOARD_SIZE || newRow < 0 || newCol < 0) break;
+                    if (board[newRow][newCol] === player) myCount++;
+                    else if (board[newRow][newCol] === '') {
+                        myOpenEnds++;
+                        break;
+                    } else break;
+                }
+
+                // Đếm về phía sau
+                for (let i = 1; i < WIN_LENGTH; i++) {
+                    const newRow = row - i * dr;
+                    const newCol = col - i * dc;
+                    if (newRow >= BOARD_SIZE || newCol >= BOARD_SIZE || newRow < 0 || newCol < 0) break;
+                    if (board[newRow][newCol] === player) myCount++;
+                    else if (board[newRow][newCol] === '') {
+                        myOpenEnds++;
+                        break;
+                    } else break;
+                }
+
+                // Đếm chuỗi của đối thủ
+                board[row][col] = opponent; // Giả lập nước đi của đối thủ để kiểm tra
+                for (let i = 1; i < WIN_LENGTH; i++) {
+                    const newRow = row + i * dr;
+                    const newCol = col + i * dc;
+                    if (newRow >= BOARD_SIZE || newCol >= BOARD_SIZE || newRow < 0 || newCol < 0) break;
+                    if (board[newRow][newCol] === opponent) oppCount++;
+                    else if (board[newRow][newCol] === '') {
+                        oppOpenEnds++;
+                        break;
+                    } else break;
+                }
+                for (let i = 1; i < WIN_LENGTH; i++) {
+                    const newRow = row - i * dr;
+                    const newCol = col - i * dc;
+                    if (newRow >= BOARD_SIZE || newCol >= BOARD_SIZE || newRow < 0 || newCol < 0) break;
+                    if (board[newRow][newCol] === opponent) oppCount++;
+                    else if (board[newRow][newCol] === '') {
+                        oppOpenEnds++;
+                        break;
+                    } else break;
+                }
+                board[row][col] = ''; // Khôi phục trạng thái
+
+                // Đánh giá chuỗi của mình
+                if (myCount >= 5) score += 100000; // Thắng ngay
+                else if (myCount === 4 && myOpenEnds >= 1) score += 10000; // Chuỗi 4 mở
+                else if (myCount === 3 && myOpenEnds >= 1) score += 1000; // Chuỗi 3 mở
+                else if (myCount === 2 && myOpenEnds >= 1) score += 100; // Chuỗi 2 mở
+
+                // Đánh giá chuỗi của đối thủ (ưu tiên chặn)
+                if (oppCount >= 5) score += 90000; // Phải chặn ngay để không thua
+                else if (oppCount === 4 && oppOpenEnds >= 1) score += 8000; // Chặn chuỗi 4 mở
+                else if (oppCount === 3 && oppOpenEnds >= 1) score += 700; // Chặn chuỗi 3 mở
+                else if (oppCount === 2 && oppOpenEnds >= 1) score += 50; // Chặn chuỗi 2 mở
+            }
+
+            return score;
+        }
+
+        // Tìm nước đi tốt nhất cho máy
+        function findBestMove() {
+            let bestScore = -Infinity;
+            let bestMove = null;
+
+            // Chỉ xem xét các ô gần các nước đi đã có để tối ưu hiệu suất
+            const possibleMoves = [];
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    if (board[i][j] === '') {
+                        let hasNeighbor = false;
+                        for (let di = -1; di <= 1; di++) {
+                            for (let dj = -1; dj <= 1; dj++) {
+                                const ni = i + di;
+                                const nj = j + dj;
+                                if (ni >= 0 && ni < BOARD_SIZE && nj >= 0 && nj < BOARD_SIZE && board[ni][nj] !== '') {
+                                    hasNeighbor = true;
+                                    break;
+                                }
+                            }
+                            if (hasNeighbor) break;
+                        }
+                        if (hasNeighbor || !board.some(row => row.some(cell => cell === 'x' || cell === 'o'))) {
+                            possibleMoves.push({ row: i, col: j });
+                        }
+                    }
+                }
+            }
+
+            // Nếu chưa có nước đi nào, chọn ô gần trung tâm
+            if (possibleMoves.length === 0) {
+                const center = Math.floor(BOARD_SIZE / 2);
+                return { row: center, col: center };
+            }
+
+            // Đánh giá từng nước đi
+            for (const move of possibleMoves) {
+                const score = evaluateMove(move.row, move.col, 'o', 'x');
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = move;
+                }
+            }
+
+            return bestMove;
+        }
+
+        // Kiểm tra thắng
+        function checkWin(row, col, player) {
+            const directions = [
+                { dr: 0, dc: 1 },  // Ngang
+                { dr: 1, dc: 0 },  // Dọc
+                { dr: 1, dc: 1 },  // Chéo chính
+                { dr: 1, dc: -1 }  // Chéo phụ
+            ];
+            
+            for (const { dr, dc } of directions) {
+                let count = 1;
+                
+                // Đếm về phía trước
+                for (let i = 1; i < WIN_LENGTH; i++) {
+                    const newRow = row + i * dr;
+                    const newCol = col + i * dc;
+                    if (newRow >= BOARD_SIZE || newCol >= BOARD_SIZE || 
+                        newRow < 0 || newCol < 0 || 
+                        board[newRow][newCol] !== player) break;
+                    count++;
+                }
+                
+                // Đếm về phía sau
+                for (let i = 1; i < WIN_LENGTH; i++) {
+                    const newRow = row - i * dr;
+                    const newCol = col - i * dc;
+                    if (newRow >= BOARD_SIZE || newCol >= BOARD_SIZE || 
+                        newRow < 0 || newCol < 0 || 
+                        board[newRow][newCol] !== player) break;
+                    count++;
+                }
+                
+                if (count >= WIN_LENGTH) return true;
+            }
+            return false;
+        }
+
+        // Kiểm tra hòa
+        function checkDraw() {
+            return board.every(row => row.every(cell => cell !== ''));
+        }
+
+        // Reset game
+        function resetGame() {
+            gameOver = false;
+            currentPlayer = 'x';
+            document.getElementById('status').textContent = 'Lượt của bạn (X)';
+            document.getElementById('board').innerHTML = '';
+            initBoard();
+        }
+
+        // Khởi tạo game
+        initBoard();
+    </script>
+</body>
+</html>
