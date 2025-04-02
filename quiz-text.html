@@ -97,12 +97,12 @@ fontCache: 'global'
     <label for="problemTemplate">Nhập mẫu bài toán:</label>
     <textarea id="problemTemplate" rows="8">
 Có phương trình ${a}x^2+{b}x+{c}=0$. Tìm nghiệm của phương trình, số lớn q={q:22:99}.
-A. ${calc: simplify('{b}x^2 + {c}x+4').toTex()}$.
-B. {calc: a^3}. luy thua
-C. {calc: abs(b)!}. giai thừa
-D. {calc: sin(c deg)}.
+A. ${tinh: simplify('{b}x^2 + {c}x+4').toTex()}$.
+B. {tinh: a^3}. luy thua
+C. {tinh: abs(b)!}. giai thừa
+D. {tinh: sin(c deg)}.
 
-Lời giải: Đạo hàm là ${calc: derivative('{b}x^2+{c}x+{t}', 'x').toString()}$.
+Lời giải: Đạo hàm là ${tinh: derivative('{b}x^2+{c}x+{t}', 'x').toString()}$.
     </textarea>
     <label for="numQuestions">Số câu cần tạo:</label>
     <input type="number" id="numQuestions" min="1" max="20" value="5">
@@ -116,31 +116,49 @@ Lời giải: Đạo hàm là ${calc: derivative('{b}x^2+{c}x+{t}', 'x').toStrin
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/14.0.1/math.js"></script>
   <script>
-    function getRandomInt(min, max) {
+function getRandomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-    function shuffleArray(array) {
-      const newArray = [...array];
-      for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-      }
-      return newArray;
+function replaceVariables(text, variables) {
+  const regex = /!([a-zA-Z0-9*]+)(?::(-?\d+):(-?\d+))?!/g;
+
+  return text.replace(regex, (match, rawVarName, minStr, maxStr) => {
+    // Kiểm tra *0 và lấy tên biến sạch
+    const isNonZero = rawVarName.includes('*0');
+    const varName = rawVarName.replace('*0', '');
+
+    // Nếu biến chưa có trong object variables, tiến hành sinh số
+    if (!(varName in variables)) {
+      // Xác định min/max, dùng giá trị mặc định -10/10 nếu không có hoặc không hợp lệ
+      let min = parseInt(minStr, 10);
+      let max = parseInt(maxStr, 10);
+      min = !isNaN(min) ? min : -10; // Mặc định min = -10 nếu không có/không hợp lệ
+      max = !isNaN(max) ? max : 10;  // Mặc định max = 10 nếu không có/không hợp lệ
+
+      let value;
+      do {
+        value = getRandomInt(min, max);
+      } while (isNonZero && value === 0); // Lặp lại nếu cần số khác 0 mà lại ra 0
+
+      variables[varName] = value; // Lưu giá trị đã sinh vào object
     }
-    function replaceVariables(template, variables) {
-      return template.replace(/{([a-zA-Z]\w*)}/g, (match, p1) => variables[p1] ?? match);
-    }
-function extractVariables(template) {
+
+    // Trả về giá trị của biến (dù là mới sinh hay đã có sẵn)
+    return variables[varName];
+  });
+}
+    function extractVariables(template) {
       const varRegex = /{([a-zA-Z]\w*(?::[-]?\d+:[-\d]+)?)}/g;
       let match;
       const vars = new Set();
       while ((match = varRegex.exec(template)) !== null) {
-        if (!match[1].startsWith("calc")) {
+        if (!match[1].startsWith("tinh")) {
           vars.add(match[1]);
         }
       }
       return Array.from(vars);
     }
+
     function evaluateCalculations(template, variables) {
       const calcRegex = /{tinh:\s*([^}]+)}/g;
       return template.replace(calcRegex, (match, expr) => {
@@ -158,143 +176,16 @@ function extractVariables(template) {
         return expr;
       }
     }
-    // Hàm làm đẹp biểu thức với hỗ trợ LaTeX tích hợp sẵn
-function lamdepbt(expression, forLatex = true) {
-    let variables = {};
-    try {
-        // Thay thế biến bằng số ngẫu nhiên - sử dụng [varName] thay vì {varName}
-        // Sử dụng *0 để chỉ định biến khác 0
-        let replaced = expression.replace(/\[([a-zA-Z0-9*]+)\]/g, (match, varName) => {
-            let isNonZero = varName.includes('*0');
-            varName = varName.replace('*0', '');
-            if (!globalVariables[varName]) {
-                let min = varName === varName.toUpperCase() ? 1 : -10;
-                let max = 10;
-                let value = getRandomInt(min, max);
-                if (isNonZero) while (value === 0) value = getRandomInt(min, max);
-                globalVariables[varName] = value;
-            }
-            variables[varName] = globalVariables[varName];
-            return globalVariables[varName];
-        });
-
-        // Kiểm tra xem biểu thức có chứa dấu = hay không
-        const hasEquals = replaced.includes('=');
-        
-        // Tách phần bên trái và bên phải dấu =
-        let parts = replaced.split('=');
-        let leftSide = parts[0].trim();
-        let rightSide = parts.length > 1 ? parts[1].trim() : '';
-
-        // Chuẩn hóa các dấu +- để xử lý đúng
-        leftSide = leftSide.replace(/\+\s*-/g, '-');  // Thay "+ -" thành "-"
-        
-        // Tách các thành phần bên trái theo dấu + hoặc -
-        let terms = [];
-        let currentTerm = '';
-        let isNegative = false;
-        
-        // Xử lý dấu âm ở đầu
-        if (leftSide.startsWith('-')) {
-            isNegative = true;
-            leftSide = leftSide.substring(1);
-        }
-        
-        // Tách các số hạng trong biểu thức
-        for (let i = 0; i < leftSide.length; i++) {
-            let char = leftSide[i];
-            
-            if ((char === '+' || char === '-') && i > 0) {
-                if (currentTerm) {
-                    terms.push((isNegative ? '-' : '') + currentTerm);
-                }
-                isNegative = (char === '-');
-                currentTerm = '';
-            } else {
-                currentTerm += char;
-            }
-        }
-        
-        // Thêm số hạng cuối cùng
-        if (currentTerm) {
-            terms.push((isNegative ? '-' : '') + currentTerm);
-        }
-        
-        let result = '';
-        
-        // Xử lý từng thành phần
-        for (let i = 0; i < terms.length; i++) {
-            let term = terms[i].trim();
-            if (!term) continue;
-            
-            // Xử lý số âm
-            let sign = term.startsWith('-') ? '-' : '+';
-            let value = term.replace(/^[+-]/, '');
-            
-            // Tách hệ số và biến (bao gồm cả lũy thừa)
-            // Cập nhật regex để phát hiện chính xác biến và lũy thừa hơn
-            let parts = value.match(/^(\d*\.?\d*)([a-zA-Z](?:\^[-+]?\d+)?)(.*)$/);
-            
-            if (!parts) {
-                // Nếu chỉ là một số
-                if (!isNaN(parseFloat(value)) && parseFloat(value) !== 0) {
-                    result += (i === 0 && sign === '+' ? '' : sign) + value;
-                }
-                continue;
-            }
-            
-            let coeff = parts[1];
-            let variable = parts[2] || '';
-            let rest = parts[3] || '';
-            
-            // Nếu hệ số không được chỉ định, mặc định là 1
-            if (coeff === '') coeff = '1';
-            
-            // Loại bỏ nếu hệ số là 0
-            if (parseFloat(coeff) === 0) continue;
-            
-            // Loại bỏ hệ số 1 trước biến nếu có biến
-            if (Math.abs(parseFloat(coeff)) === 1 && variable) {
-                coeff = sign === '-' ? '-' : '';
-            } else {
-                coeff = (sign === '-' ? '-' : '') + coeff;
-            }
-            
-            // Thêm dấu + nếu không phải phần tử đầu tiên và không phải dấu -
-            if (i > 0 && !coeff.startsWith('-')) {
-                result += '+';
-            }
-            
-            result += coeff + variable + rest;
-        }
-        
-        // Nếu kết quả rỗng (tất cả các số hạng đều là 0)
-        if (!result) result = '0';
-        
-        // Chỉ thêm phần bên phải dấu = nếu biểu thức ban đầu có dấu =
-        if (hasEquals) {
-            result += ' = ' + rightSide;
-        }
-        
-        // Xử lý định dạng LaTeX nếu cần
-        if (forLatex) {
-            // Thay thế các ký tự đặc biệt của LaTeX
-            result = result.replace(/#/g, '\\#');
-            
-            // Định dạng lũy thừa cho LaTeX - giữ nguyên số mũ của biến x
-            result = result.replace(/([a-zA-Z])\^(\d+)/g, (match, varName, exponent) => {
-                return `${varName}^{${exponent}}`;
-            });
-        }
-        
-        return result;
-    } catch (error) {
-        console.error("Lỗi khi làm đẹp biểu thức:", error, expression);
-        return expression;
+function shuffleArray(array) {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
     }
-}
 
-// tao cau hoi
+    // tao cau hoi
     function createQuestion(index, template) {
       const varNames = extractVariables(template);
       const variables = {};
