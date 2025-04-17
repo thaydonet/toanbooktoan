@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game học công thức Đạo Hàm</title> <link rel="stylesheet" href="style.css">
+
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']], // Ký hiệu cho inline math
+            displayMath: [['$$', '$$'], ['\\[', '\\]']], // Ký hiệu cho display math
+            processEscapes: true,
+            tags: 'ams', // Đánh số nếu dùng tag
+             packages: {'[+]': ['ams']} // Đảm bảo các gói AMS được nạp
+          },
+          svg: { // Hoặc dùng 'chtml'
+            fontCache: 'global',
+            matchFontHeight: true // Cố gắng khớp chiều cao font
+          },
+          options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            ignoreHtmlClass: 'tex2jax_ignore',
+            processHtmlClass: 'tex2jax_process'
+          },
+           loader: {load: ['[tex]/ams']} // Nạp gói AMS
+        };
+      </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    </head>
+<body>
+
+    <h1>Học công thức Đạo Hàm - Toán 11</h1>
+    <p>Kéo ô đạo hàm từ khu vực dưới và thả vào 10 ô trống (_) ở khu vực trên. Sau khi điền đủ, nhấn nút "Chấm điểm".</p>
+
+    <div class="game-container">
+        <div class="section functions-section" id="functions-section">
+            <h2>Hàm Số ($f(x)$) - Thả vào đây các đạo hàm bên dưới</h2> <div class="items-container" id="function-items-container">
+                </div>
+        </div>
+
+        <div class="section derivatives-section" id="derivatives-section">
+            <h2>Đạo Hàm ($f'(x)$) - Kéo từ đây lên trên</h2> <div class="items-container" id="derivative-items-container">
+                </div>
+        </div>
+    </div>
+
+     <div class="button-container"> <button id="grade-button" disabled>Chấm điểm</button>
+        <button id="reset-button">Chơi lại</button>
+    </div>
+    <div id="feedback">Điền đủ 10 ô để chấm điểm.</div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch/DragDropTouch.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
