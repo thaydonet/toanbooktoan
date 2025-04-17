@@ -1,0 +1,350 @@
+/* === style.css === */
+
+/* --- Thiết lập cơ bản --- */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* Sử dụng font hệ thống */
+    line-height: 1.5;
+    margin: 10px;
+    background-color: #f4f7f6; /* Màu nền trang nhạt hơn */
+    color: #333;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-tap-highlight-color: transparent; /* Bỏ highlight khi chạm trên mobile */
+}
+
+h1, h2 {
+    text-align: center;
+    color: #005a8d; /* Màu xanh đậm hơn */
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: 600; /* Đậm hơn một chút */
+}
+h1 {
+    font-size: 1.6em;
+    margin-bottom: 5px;
+}
+h2 {
+    font-size: 1.3em;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #dce3e9; /* Kẻ chân nhẹ cho H2 */
+}
+p {
+    text-align: center;
+    margin-bottom: 15px; /* Khoảng cách rõ hơn */
+    font-size: 0.95em;
+    color: #555; /* Màu chữ mô tả nhạt hơn */
+}
+
+/* --- Container chính của game --- */
+.game-container {
+    max-width: 800px; /* Chiều rộng tối đa */
+    margin: 15px auto;
+    background-color: #ffffff;
+    border-radius: 10px; /* Bo góc nhiều hơn */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* Đổ bóng rõ hơn */
+    padding: 20px; /* Tăng padding */
+}
+
+/* --- Kiểu dáng chung cho các khu vực (trên và dưới) --- */
+.section {
+    border: 1px solid #dce3e9; /* Viền nhạt */
+    border-radius: 8px; /* Bo góc cho section */
+    margin-bottom: 20px; /* Khoảng cách giữa 2 section */
+    padding: 15px;
+    background-color: #f8f9fa; /* Nền rất nhạt */
+}
+.section:last-child {
+    margin-bottom: 0; /* Bỏ margin cho section cuối */
+}
+
+/* Khu vực chứa các mục (để quản lý cuộn) */
+.items-container {
+    padding: 5px;
+}
+
+/* Khu vực hàm số (trên) */
+.functions-section {
+     background-color: #ffffff; /* Nền trắng cho khu vực hàm số */
+}
+.functions-section h2 {
+     color: #007bff; /* Màu khác cho tiêu đề hàm số */
+     border-bottom-color: #cce5ff;
+}
+.functions-section .items-container {
+    display: flex;
+    flex-wrap: wrap;
+    /* justify-content: space-between; */ /* Dùng gap thay thế */
+    gap: 10px; /* Khoảng cách giữa các function-item */
+    align-items: stretch; /* Kéo dài các item cho bằng chiều cao */
+    max-height: 60vh; /* Chiều cao tối đa, có thể điều chỉnh */
+    overflow-y: auto; /* Cho phép cuộn dọc nếu cần */
+}
+
+/* Khu vực đạo hàm (dưới) */
+.derivatives-section {
+     background-color: #e9ecef; /* Nền xám nhạt */
+}
+.derivatives-section h2{
+    color: #6c757d; /* Màu xám cho tiêu đề đạo hàm */
+    border-bottom-color: #dee2e6;
+}
+.derivatives-section .items-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 8px; /* Khoảng cách giữa các ô đạo hàm */
+    min-height: 100px; /* Chiều cao tối thiểu */
+    max-height: 30vh; /* Chiều cao tối đa, có thể điều chỉnh */
+    overflow-y: auto;
+    padding: 10px 5px;
+}
+
+/* --- Mục hàm số bên trên (Layout 2 cột) --- */
+.function-item {
+    flex-basis: calc(50% - 5px); /* 2 cột, trừ đi nửa khoảng cách gap */
+    box-sizing: border-box; /* Quan trọng khi dùng % và padding/border */
+
+    display: flex;
+    align-items: center;
+    margin-bottom: 0; /* Bỏ margin vì đã có gap */
+    padding: 10px; /* Tăng nhẹ padding */
+    background-color: #fdfdfd; /* Nền trắng hơn một chút */
+    border-radius: 6px; /* Bo góc nhiều hơn */
+    border: 1px solid #eef2f7; /* Viền rất nhạt */
+    min-height: 50px; /* Chiều cao tối thiểu */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); /* Đổ bóng nhẹ */
+}
+
+.function-text {
+    flex-grow: 1;
+    margin-right: 10px; /* Khoảng cách rõ hơn */
+    font-size: 0.95em; /* Tăng nhẹ cỡ chữ */
+    color: #212529; /* Màu chữ đậm hơn */
+    line-height: 1.4;
+    /* CSS cho MathJax bên trong */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    word-break: keep-all;
+    overflow-wrap: normal;
+}
+
+/* --- Ô để thả đạo hàm vào --- */
+.drop-zone {
+    width: 110px; /* Tăng nhẹ chiều rộng */
+    min-height: 35px; /* Tăng nhẹ chiều cao */
+    border: 1.5px dashed #adb5bd; /* Viền đậm hơn chút */
+    background-color: #f1f3f5; /* Nền nhạt */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #6c757d; /* Màu chữ placeholder nhạt */
+    font-style: italic;
+    font-size: 0.9em;
+    border-radius: 4px; /* Bo góc nhẹ */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease-out;
+    flex-shrink: 0;
+    position: relative;
+}
+
+/* --- Ô đạo hàm kéo được (kích thước nhỏ) --- */
+.derivative-box {
+    flex-basis: auto; /* Kích thước tự động theo nội dung */
+    padding: 6px 12px; /* Tăng padding */
+    font-size: 0.9em; /* Tăng nhẹ font */
+    min-height: 32px; /* Tăng nhẹ chiều cao */
+    min-width: 70px; /* Chiều rộng tối thiểu */
+
+    background-color: #007bff; /* Màu xanh dương chính */
+    color: white;
+    border: none; /* Bỏ border mặc định */
+    border-radius: 4px;
+    cursor: grab;
+    text-align: center;
+    transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3); /* Đổ bóng màu xanh */
+
+    /* CSS cho MathJax bên trong */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+}
+.derivative-box:active {
+    cursor: grabbing;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4); /* Bóng đậm hơn khi giữ */
+    transform: scale(1.03); /* Phóng to nhẹ khi giữ */
+}
+
+/* --- Trạng thái khi kéo/thả --- */
+.derivative-box.dragging {
+    opacity: 0.65; /* Mờ hơn */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Đổ bóng khi kéo */
+    transform: scale(1.05) rotate(2deg); /* Nghiêng nhẹ khi kéo */
+    z-index: 1000; /* Đảm bảo nằm trên cùng */
+}
+
+.drop-zone.drag-over {
+    background-color: #cce5ff; /* Nền xanh nhạt hơn */
+    border-color: #007bff; /* Viền xanh dương */
+    border-style: solid;
+    transform: scale(1.05); /* Phóng to rõ hơn */
+}
+
+/* Kiểu cho ô đạo hàm đã được đặt vào ô thả (trước khi chấm) */
+.drop-zone .derivative-box {
+     cursor: default;
+     box-shadow: none; /* Bỏ bóng khi đã nằm trong ô */
+     /* Giữ kích thước và màu */
+     background-color: #007bff;
+     color: white;
+     border: none;
+     padding: 6px 12px;
+     font-size: 0.9em;
+     min-height: 32px;
+}
+
+/* --- Trạng thái SAU KHI CHẤM ĐIỂM --- */
+.drop-zone.correct-final {
+    border: 2px solid #28a745 !important;
+    background-color: #e9f7ef !important;
+}
+.drop-zone.incorrect-final {
+    border: 2px solid #dc3545 !important;
+    background-color: #fceeed !important;
+}
+/* Tô màu cả ô đạo hàm bên trong sau khi chấm */
+.drop-zone.correct-final .derivative-box {
+    background-color: #28a745 !important; /* Dùng !important để chắc chắn ghi đè */
+    border-color: #1e7e34 !important;
+    color: white !important;
+    box-shadow: none !important;
+    opacity: 1 !important; /* Đảm bảo không bị mờ */
+}
+.drop-zone.incorrect-final .derivative-box {
+    background-color: #dc3545 !important;
+    border-color: #b02a37 !important;
+    color: white !important;
+    box-shadow: none !important;
+     opacity: 1 !important;
+}
+/* Kiểu cho ô đạo hàm còn sót lại ở nguồn sau khi chấm */
+.derivatives-section .derivative-box[draggable="false"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #6c757d; /* Màu xám */
+    box-shadow: none;
+}
+
+
+/* --- Nút bấm --- */
+.button-container {
+    text-align: center;
+    margin-top: 20px; /* Khoảng cách trên rõ hơn */
+}
+#grade-button, #reset-button {
+    display: inline-block;
+    margin: 0 8px; /* Khoảng cách giữa các nút */
+    padding: 12px 25px; /* Nút to hơn */
+    font-size: 1.05em; /* Chữ to hơn */
+    font-weight: 500;
+    cursor: pointer;
+    color: white;
+    border: none;
+    border-radius: 6px; /* Bo góc nhiều hơn */
+    transition: background-color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
+}
+#reset-button { background-color: #6c757d; }
+#reset-button:hover { background-color: #5a6268; }
+#reset-button:active { transform: scale(0.98); } /* Hiệu ứng nhấn nút */
+
+#grade-button { background-color: #28a745; } /* Màu xanh lá cho nút chấm */
+#grade-button:hover { background-color: #218838; }
+#grade-button:active { transform: scale(0.98); }
+#grade-button:disabled {
+    background-color: #a3d9b1; /* Màu xanh lá nhạt hơn khi bị vô hiệu hóa */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* --- Khu vực phản hồi --- */
+#feedback {
+    text-align: center;
+    margin-top: 20px;
+    font-weight: 500; /* Đậm vừa phải */
+    font-size: 1.1em;
+    padding: 12px; /* Tăng padding */
+    border-radius: 6px;
+    min-height: 1.6em; /* Đảm bảo có chiều cao */
+    border: 1px solid transparent; /* Thêm border để giữ layout khi đổi màu */
+}
+#feedback.success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+#feedback.error { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+#feedback.info { color: #0c5460; background-color: #d1ecf1; border-color: #bee5eb; }
+
+
+/* --- CSS cho MathJax output --- */
+mjx-container[display="true"] { /* Display math */
+     margin: 0.5em 0 !important;
+}
+mjx-container { /* Inline math */
+    margin: 0 0.1em !important; /* Khoảng cách nhỏ với text xung quanh */
+    text-align: center !important;
+    /* font-size: 1em !important; */ /* Kế thừa font size cha */
+}
+/* Đảm bảo SVG không tràn */
+mjx-container svg {
+    max-width: 100%;
+}
+
+/* Fix màu SVG trong các ô đã chấm điểm */
+.drop-zone.correct-final .derivative-box mjx-container svg path,
+.drop-zone.incorrect-final .derivative-box mjx-container svg path {
+     fill: white !important;
+}
+/* Fix màu CHTML trong các ô đã chấm điểm */
+.drop-zone.correct-final .derivative-box mjx-container,
+.drop-zone.incorrect-final .derivative-box mjx-container {
+     color: white !important;
+}
+
+
+/* --- Responsive Design --- */
+@media (max-width: 700px) { /* Điều chỉnh breakpoint nếu cần */
+    .game-container { max-width: 95%; padding: 15px; }
+    h1 { font-size: 1.4em; }
+    h2 { font-size: 1.2em; }
+
+    .functions-section .items-container {
+         gap: 8px; /* Giảm gap */
+    }
+    .function-item {
+        flex-basis: 100%; /* 1 cột trên màn hình nhỏ hơn */
+        margin-bottom: 8px; /* Thêm lại margin dưới vì thành 1 cột */
+    }
+    .drop-zone {
+        width: 120px; /* Có thể điều chỉnh lại */
+    }
+}
+
+@media (max-width: 480px) {
+    body { margin: 5px; }
+    .game-container { padding: 10px; }
+    h1 { font-size: 1.3em; }
+    h2 { font-size: 1.1em; }
+    p { font-size: 0.9em; margin-bottom: 10px; }
+    .function-item { padding: 8px; min-height: 45px;}
+    .function-text { font-size: 0.9em; margin-right: 5px; }
+    .drop-zone { width: 100px; min-height: 32px; font-size: 0.85em;}
+    .derivative-box { padding: 5px 8px; font-size: 0.85em; min-height: 30px;}
+    .derivatives-section .items-container { gap: 6px; padding: 8px 4px;}
+    #grade-button, #reset-button { padding: 10px 18px; font-size: 1em; margin: 0 5px;}
+    #feedback { font-size: 1em; padding: 10px; }
+}
