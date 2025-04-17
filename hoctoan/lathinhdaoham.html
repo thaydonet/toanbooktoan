@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Lật Hình Đạo Hàm</title>
+    <link rel="stylesheet" href="style2.css">
+
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            tags: 'ams',
+             packages: {'[+]': ['ams']}
+          },
+          svg: { // Hoặc dùng 'chtml'
+            fontCache: 'global',
+            matchFontHeight: true
+          },
+          options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            ignoreHtmlClass: 'tex2jax_ignore'
+          },
+           loader: {load: ['[tex]/ams']}
+        };
+      </script>
+    <script id="MathJax-script" async src="https://math.booktoan.com/mathjax/es5/tex-mml-svg.js"></script>
+    </head>
+<body>
+
+    <h1>Game Lật Hình: Ghép Hàm học công thức Đạo Hàm</h1>
+    <div id="game-info">
+        Số lần sai: <span id="attempts">0</span>
+    </div>
+
+    <div class="memory-game-container" id="memory-game">
+        </div>
+
+    <div id="result" class="hidden"></div> <button id="reset-button">Chơi lại</button>
+
+    <script src="script2.js"></script>
+</body>
+</html>
