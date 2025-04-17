@@ -39,7 +39,7 @@ p {
 
 /* --- Container chính của game --- */
 .game-container {
-    max-width: 800px; /* Chiều rộng tối đa */
+    max-width: 1000px; /* Chiều rộng tối đa */
     margin: 15px auto;
     background-color: #ffffff;
     border-radius: 10px; /* Bo góc nhiều hơn */
