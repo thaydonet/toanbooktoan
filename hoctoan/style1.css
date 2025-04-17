@@ -104,7 +104,7 @@ p {
 
 /* --- Mục hàm số bên trên (Layout 2 cột) --- */
 .function-item {
-    flex-basis: calc(50% - 5px); /* 2 cột, trừ đi nửa khoảng cách gap */
+    flex-basis: calc(25% - 8px); /* 2 cột, trừ đi nửa khoảng cách gap */
     box-sizing: border-box; /* Quan trọng khi dùng % và padding/border */
 
     display: flex;
@@ -317,7 +317,7 @@ mjx-container svg {
 
 
 /* --- Responsive Design --- */
-@media (max-width: 700px) { /* Điều chỉnh breakpoint nếu cần */
+@media (max-width: 768px) { /* Điều chỉnh breakpoint nếu cần */
     .game-container { max-width: 95%; padding: 15px; }
     h1 { font-size: 1.4em; }
     h2 { font-size: 1.2em; }
@@ -326,7 +326,7 @@ mjx-container svg {
          gap: 8px; /* Giảm gap */
     }
     .function-item {
-        flex-basis: 100%; /* 1 cột trên màn hình nhỏ hơn */
+        flex-basis: calc(50% - 4px);
         margin-bottom: 8px; /* Thêm lại margin dưới vì thành 1 cột */
     }
     .drop-zone {
