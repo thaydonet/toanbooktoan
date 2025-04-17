@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -118,17 +119,19 @@
             <div class="input-container">
                 <div class="input-header">Nhập công thức LaTeX:</div>
                 <div class="toolbar">
-                    <div class="tool-btn" onclick="insertSymbol('\\frac{a}{b}')">Phân số</div>
-                    <div class="tool-btn" onclick="insertSymbol('\\sqrt{x}')">Căn bậc 2</div>
-                    <div class="tool-btn" onclick="insertSymbol('\\sqrt[n]{x}')">Căn bậc n</div>
-                    <div class="tool-btn" onclick="insertSymbol('C_n^k')">Tổ hợp</div>
+                    <div class="tool-btn" onclick="insertSymbol('\\frac{a}{b}')">$\frac{a}{b}$</div>
+                    <div class="tool-btn" onclick="insertSymbol('\\sqrt{x}')">$\sqrt{x}$</div>
+                    <div class="tool-btn" onclick="insertSymbol('\\sqrt[n]{x}')">$\sqrt[n]{x}$</div>
+                    <div class="tool-btn" onclick="insertSymbol('C_n^k')">$C_n^k$</div>
                     <div class="tool-btn" onclick="insertSymbol('\\begin{cases} y=x^2 & x > 0 \\\\ y=0 & x \\leq 0 \\end{cases}')">Hệ và {</div>
-                    <div class="tool-btn" onclick="insertSymbol('\\left[\\begin{aligned}x+y=0 \\\\ 2x-y=0\\end{aligned}\\right.')">Hệ hoặc[</div>
-                    <div class="tool-btn" onclick="insertSymbol('\\int_{a}^{b}')">Tích phân</div>
-                    <div class="tool-btn" onclick="insertSymbol('\\lim_{x \\to 0}')">Giới hạn</div>
-                    <div class="tool-btn" onclick="insertSymbol('\\overrightarrow{AB}')">Vector</div>
-                    <div class="tool-btn" onclick="insertSymbol('\\infty')">Vô cực</div>
-                  
+                    <div class="tool-btn" onclick="insertSymbol('\\left[\\begin{aligned}x+y=0 \\\\ 2x-y=0\\end{aligned}\\right.')">Hệ hoặc [</div>
+                    <div class="tool-btn" onclick="insertSymbol('\\int')">$\int$</div>
+                    <div class="tool-btn" onclick="insertSymbol('\\int_{a}^{b}')">$\int_{a}^{b}$</div>
+                    <div class="tool-btn" onclick="insertSymbol('\\lim_{x \\to 0}')">$\lim_{x \to 0}$</div>
+                    <div class="tool-btn" onclick="insertSymbol('\\overrightarrow{AB}')">$\overrightarrow{AB}$</div>
+                    <div class="tool-btn" onclick="insertSymbol('\\infty')">$\infty$</div>
+                    <div class="tool-btn" onclick="insertSymbol('\\alpha')">$\alpha$</div>
+                    <div class="tool-btn" onclick="insertSymbol('\\Delta')">$\Delta$</div>
                 </div>
                 <textarea id="latex-input" placeholder="Nhập công thức LaTeX ở đây, ví dụ: x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}"></textarea>
             </div>
@@ -143,13 +146,38 @@
                 <div id="preview"></div>
             </div>
             <div class="toolbar">
-                <div class="tool-btn" onclick="insertSymbol('\\sum_{i=1}^{n}')">Tổng</div>
-                <div class="tool-btn" onclick="insertSymbol('\\prod_{i=1}^{n}')">Tích</div>
-                <div class="tool-btn" onclick="insertSymbol('x^2')">Lũy thừa</div>
-                <div class="tool-btn" onclick="insertSymbol('x_i')">Chỉ số (x_i)</div>
-                <div class="tool-btn" onclick="insertSymbol('\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}')">Ma trận</div>
-                <div class="tool-btn" onclick="insertSymbol('\\left( \\right)')">Ngoặc tự động ()</div>
-               
+                <div class="tool-btn" onclick="insertSymbol('\\pm')">$\pm$</div>
+                <div class="tool-btn" onclick="insertSymbol('\\times')">$\times$</div>
+                <div class="tool-btn" onclick="insertSymbol('\\cdot')">$\cdot$</div>
+                <div class="tool-btn" onclick="insertSymbol('\\neq')">$\neq$</div>
+<div class="tool-btn" onclick="insertSymbol('\\approx')">$\approx$</div>
+<div class="tool-btn" onclick="insertSymbol('\\leq')">$\leq$</div>
+<div class="tool-btn" onclick="insertSymbol('\\geq')">$\geq$</div>
+<div class="tool-btn" onclick="insertSymbol('^{}')">$x^2$</div>
+<div class="tool-btn" onclick="insertSymbol('_{}')">$x_i$</div>
+<div class="tool-btn" onclick="insertSymbol('\\alpha')">$\alpha$</div>
+<div class="tool-btn" onclick="insertSymbol('\\beta')">$\beta$</div>
+<div class="tool-btn" onclick="insertSymbol('\\gamma')">$\gamma$</div>
+<div class="tool-btn" onclick="insertSymbol('\\sum_{}^{}')">$\sum_{i=1}^{n}$</div>
+<div class="tool-btn" onclick="insertSymbol('\\prod_{}^{}')">$\prod_{i=1}^{n}$</div>
+<div class="tool-btn" onclick="insertSymbol('\\emptyset')">$\emptyset$</div>
+<div class="tool-btn" onclick="insertSymbol('\\mathbb{R}')">$\mathbb{R}$</div>
+<div class="tool-btn" onclick="insertSymbol('\\mathbb{C}')">$\mathbb{C}$</div>
+<div class="tool-btn" onclick="insertSymbol('\\mathbb{N}')">$\mathbb{N}$</div>
+<div class="tool-btn" onclick="insertSymbol('\\mathbb{Z}')">$\mathbb{Z}$</div>
+<div class="tool-btn" onclick="insertSymbol('\\mathbb{Q}')">$\mathbb{Q}$</div>
+<div class="tool-btn" onclick="insertSymbol('\\in')">$\in$</div>
+<div class="tool-btn" onclick="insertSymbol('\\notin')">$\notin$</div>
+<div class="tool-btn" onclick="insertSymbol('\\subset')">$\subset$</div>
+<div class="tool-btn" onclick="insertSymbol('\\supset')">$\supset$</div>
+
+<div class="tool-btn" onclick="insertSymbol('\\cap')">$\cap$</div>
+<div class="tool-btn" onclick="insertSymbol('\\cup')">$\cup$</div>
+<div class="tool-btn" onclick="insertSymbol('\\forall')">$\forall$</div>
+<div class="tool-btn" onclick="insertSymbol('\\exists')">$\exists$</div>
+<div class="tool-btn" onclick="insertSymbol('\\Rightarrow')">$\Rightarrow$</div>
+<div class="tool-btn" onclick="insertSymbol('\\Leftarrow')">$\Leftarrow$</div>
+<div class="tool-btn" onclick="insertSymbol('\\Leftrightarrow')">$\Leftrightarrow$</div>
             </div>
         </div>
     </div>
@@ -246,4 +274,11 @@
         });
     </script>
 </body>
+<script data-ad-client="ca-pub-4789233598401236" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<p>Đây là website về giải bài tập sách giáo khoa môn Toán từ lớp 1 đến lớp 12 của SGK Chân trời, Kết nối, Cánh diều, Xem và tải về sách giáo khoa môn Toán.
+Học Toán phổ thông online, Ôn thi TN THPT Quốc gia môn Toán và đề thi toán 2025.</p>
+
+<p>chung host BT(C) 2015 - 2025<a href="https://booktoan.com/" target="_blank">Booktoan.com</a></p>
+
+    </body>
 </html>
