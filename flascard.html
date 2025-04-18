@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards Đa Năng Nâng Cao</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']], // Dấu $...$ hoặc \(...\) cho inline math
+                displayMath: [['$$', '$$'], ['\\[', '\\]']], // Dấu $$...$$ hoặc \[...\] cho display math
+                processEscapes: true // Cho phép dùng \$ để hiển thị dấu $
+            },
+            svg: {
+                fontCache: 'global' // Cải thiện tốc độ render
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], // Bỏ qua các thẻ này
+                ignoreHtmlClass: 'tex2jax_ignore', // Bỏ qua các phần tử có class này
+                processHtmlClass: 'tex2jax_process' // Chỉ xử lý các phần tử có class này (nếu cần)
+            },
+            startup: {
+                ready: () => {
+                    console.log('MathJax is ready.');
+                    MathJax.startup.defaultReady();
+                    // Bạn có thể gọi MathJax.typesetPromise() ở đây nếu cần render lại toàn bộ trang ban đầu
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <style>
+        /* --- Kiểu dáng cơ bản (giữ nguyên hoặc điều chỉnh nếu cần) --- */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        #controls {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px; /* Tăng khoảng cách */
+            flex-wrap: wrap;
+        }
+
+        #controls label {
+            font-weight: bold;
+            cursor: pointer; /* Thêm con trỏ cho label */
+        }
+         /* Kiểu cho checkbox và label đi kèm */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+         #random-checkbox {
+            cursor: pointer;
+            width: 16px; /* Kích thước checkbox */
+            height: 16px;
+         }
+
+
+        #num-cards {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 60px;
+            text-align: center;
+            font-size: 1em;
+        }
+
+        #load-button {
+            padding: 9px 18px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+         #load-button:hover { background-color: #0056b3; }
+         #load-button:active { transform: scale(0.98); }
+         #load-button:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+        #card-counter {
+            color: #555;
+            font-size: 0.9em;
+            margin-bottom: 25px;
+            height: 1.2em;
+            font-weight: bold;
+        }
+
+        #flashcard-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px; /* Tăng khoảng cách giữa các thẻ */
+            padding: 20px 0;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            /* Quan trọng cho hiệu ứng 3D */
+            perspective: 1000px;
+        }
+
+        /* --- Kiểu dáng cho hiệu ứng lật thẻ --- */
+        .flashcard {
+            background-color: transparent; /* Nền trong suốt vì màu sẽ nằm ở mặt trước/sau */
+            width: 280px;
+            height: 210px;
+            border: none; /* Bỏ border nếu có */
+            border-radius: 12px;
+            cursor: pointer;
+            perspective: 1000px; /* Phối cảnh 3D cho từng thẻ */
+            box-shadow: none; /* Bỏ bóng đổ ở đây, sẽ áp dụng cho mặt thẻ */
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.7s; /* Thời gian lật */
+            transform-style: preserve-3d; /* Giữ hiệu ứng 3D */
+            border-radius: 12px; /* Bo góc cho phần inner */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); /* Đặt bóng đổ ở đây */
+        }
+
+        /* Thêm class này bằng JS để lật thẻ */
+        .flashcard-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden; /* Safari */
+            backface-visibility: hidden; /* Ẩn mặt sau khi không lật */
+            border-radius: 12px; /* Bo góc cho cả 2 mặt */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow: auto; /* Thêm thanh cuộn nếu nội dung dài */
+            color: #333;
+        }
+
+        .flashcard-front {
+            /* Màu nền sẽ được đặt bằng JS */
+            background-color: #eee; /* Màu mặc định */
+        }
+
+        .flashcard-back {
+            /* Màu nền mặt sau có thể khác hoặc giống mặt trước */
+           
+            transform: rotateY(180deg); /* Xoay mặt sau sẵn */
+        }
+
+        /* --- Kiểu dáng cho nội dung bên trong thẻ (như cũ) --- */
+        .flashcard img {
+            max-width: 90%;
+            max-height: 140px; /* Giảm chiều cao tối đa một chút */
+            height: auto;
+            display: block;
+            margin: 5px auto; /* Giảm margin */
+            border-radius: 5px;
+            object-fit: contain;
+        }
+
+        /* MathJax có thể tự điều chỉnh kích thước, nhưng có thể thêm nếu cần */
+        .flashcard .MathJax_SVG, .flashcard .MJXc-display {
+            font-size: 1.1em !important; /* Tăng kích thước font mathjax */
+            margin: 5px 0 !important;
+            max-width: 100%; /* Đảm bảo không tràn */
+            overflow-x: auto; /* Cho phép cuộn ngang nếu công thức quá dài */
+            display: inline-block; /* Hoặc block tùy theo displayMode */
+            vertical-align: middle;
+        }
+        /* Đảm bảo display math căn giữa */
+         .flashcard .MJXc-display, .flashcard mjx-container[display="true"] {
+             display: block !important;
+             margin: 10px auto !important;
+         }
+
+
+        .loading-message, .error-message {
+            color: #555; font-style: italic;
+        }
+        .error-message { color: red; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+    <h1>Flashcards Đa Năng Nâng Cao</h1>
+
+    <div id="controls">
+        <label for="num-cards">Số lượng thẻ:</label>
+        <input type="number" id="num-cards" value="5" min="1">
+        <div class="checkbox-group">
+             <input type="checkbox" id="random-checkbox">
+             <label for="random-checkbox">Ngẫu nhiên</label>
+        </div>
+        <button id="load-button">Tải Thẻ</button>
+    </div>
+
+    <div id="card-counter">Nhập số lượng và nhấn "Tải Thẻ"</div>
+
+    <div id="flashcard-container">
+        </div>
+
+    <script>
+        // --- Sheet Info (giữ nguyên) ---
+        const sheetId = '1w0ki8SJc9v1GLm2z55Np-FeETE3BM8KWo3Dg4btMuEA';
+        const sheetName = 'Sheet1';
+        const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+
+        // --- DOM Elements ---
+        const numCardsInput = document.getElementById('num-cards');
+        const loadButton = document.getElementById('load-button');
+        const randomCheckbox = document.getElementById('random-checkbox'); // Lấy checkbox
+        const counterElement = document.getElementById('card-counter');
+        const container = document.getElementById('flashcard-container');
+
+        // --- Data Storage ---
+        let allData = [];
+        let currentCardsData = [];
+
+        // --- Helper Functions ---
+        function getRandomColor() {
+            const h = Math.floor(Math.random() * 360);
+            const s = Math.floor(Math.random() * 25) + 75;
+            const l = Math.floor(Math.random() * 10) + 80;
+            return `hsl(${h}, ${s}%, ${l}%)`;
+        }
+
+        function shuffleArray(array) {
+            // ... (giữ nguyên hàm shuffle) ...
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- Render Content (Simplified for MathJax) ---
+        // Hàm này chỉ đặt HTML, MathJax sẽ tự tìm và render sau
+        function setContent(element, contentString) {
+            contentString = contentString || ""; // Xử lý nội dung rỗng
+            // Kiểm tra xem có phải URL ảnh không
+            if (contentString.includes('http') && /\.(jpg|jpeg|png|gif|bmp|svg)$/i.test(contentString)) {
+                const img = document.createElement('img');
+                img.src = contentString;
+                img.alt = "Hình ảnh Flashcard";
+                img.loading = "lazy";
+                img.onerror = () => {
+                    element.innerHTML = '<span class="error-message">[Lỗi tải ảnh]</span>';
+                }
+                element.innerHTML = ''; // Xóa nội dung cũ trước khi thêm ảnh
+                element.appendChild(img);
+            } else {
+                // Đặt nội dung text hoặc công thức (với dấu $ hoặc $$)
+                element.innerHTML = contentString; // MathJax sẽ tìm dấu $ và $$
+            }
+        }
+
+        // --- Fetch All Data (giữ nguyên logic) ---
+        async function fetchAllData() {
+            // ... (giữ nguyên phần fetch, parse, lưu vào allData) ...
+             container.innerHTML = '<p class="loading-message">Đang tải dữ liệu từ Google Sheet...</p>';
+            counterElement.innerText = '';
+            loadButton.disabled = true;
+
+            try {
+                const response = await fetch(sheetUrl);
+                if (!response.ok) throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
+                const data = await response.text();
+                const rows = data.split('\n').map(row =>
+                    row.split(',').map(cell => cell.trim().replace(/^"|"$/g, ''))
+                );
+                allData = rows.slice(1)
+                    .filter(row => row.length >= 1 && row[0] && row[0].trim())
+                    .map(row => ({ front: row[0] || '', back: row[1] || '' }));
+
+                if (allData.length === 0) {
+                    container.innerHTML = '<p class="error-message">Không tìm thấy dữ liệu hợp lệ.</p>';
+                } else {
+                    container.innerHTML = '';
+                    counterElement.innerText = `Sẵn sàng ${allData.length} thẻ. Hãy chọn số lượng và nhấn "Tải Thẻ".`;
+                }
+            } catch (error) {
+                console.error('Lỗi khi tải dữ liệu:', error);
+                container.innerHTML = `<p class="error-message">Lỗi tải dữ liệu (${error.message}).</p>`;
+                counterElement.innerText = 'Tải dữ liệu thất bại';
+            } finally {
+                loadButton.disabled = false;
+            }
+        }
+
+        // --- Display Cards (Major Update) ---
+        function displayCards() {
+            const numToShow = parseInt(numCardsInput.value, 10);
+            if (isNaN(numToShow) || numToShow <= 0) {
+                counterElement.innerText = "Vui lòng nhập số lượng thẻ hợp lệ (> 0).";
+                return;
+            }
+            if (allData.length === 0) {
+                counterElement.innerText = "Chưa có dữ liệu thẻ. Đang thử tải lại...";
+                fetchAllData();
+                return;
+            }
+
+            // **Kiểm tra checkbox ngẫu nhiên**
+            const isRandom = randomCheckbox.checked;
+            let dataToDisplay;
+
+            if (isRandom) {
+                // Ngẫu nhiên: Xáo trộn và lấy N thẻ đầu
+                const shuffledData = shuffleArray([...allData]);
+                dataToDisplay = shuffledData.slice(0, Math.min(numToShow, allData.length));
+            } else {
+                // Theo thứ tự: Lấy N thẻ đầu tiên từ dữ liệu gốc
+                dataToDisplay = allData.slice(0, Math.min(numToShow, allData.length));
+            }
+
+            currentCardsData = dataToDisplay; // Lưu lại dữ liệu đang hiển thị
+            container.innerHTML = ''; // Xóa thẻ cũ
+
+            if (currentCardsData.length === 0) {
+                container.innerHTML = '<p>Không có thẻ nào để hiển thị.</p>';
+                counterElement.innerText = '';
+                return;
+            }
+
+            // **Tạo cấu trúc HTML cho từng thẻ với hiệu ứng lật**
+            currentCardsData.forEach((cardData) => {
+                // 1. Tạo thẻ cha .flashcard
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('flashcard');
+
+                // 2. Tạo thẻ .flashcard-inner (phần sẽ xoay)
+                const innerElement = document.createElement('div');
+                innerElement.classList.add('flashcard-inner');
+                const cardColor = getRandomColor();
+                // 3. Tạo mặt trước .flashcard-front
+                const frontFace = document.createElement('div');
+                frontFace.classList.add('flashcard-front');
+                frontFace.style.backgroundColor = cardColor; // Đặt màu nền ngẫu nhiên cho mặt trước
+                setContent(frontFace, cardData.front); // Đặt nội dung mặt trước
+
+                // 4. Tạo mặt sau .flashcard-back
+                const backFace = document.createElement('div');
+                backFace.classList.add('flashcard-back');
+                 // Có thể đặt màu mặt sau cố định hoặc cũng ngẫu nhiên
+                backFace.style.backgroundColor = cardColor;
+                setContent(backFace, cardData.back); // Đặt nội dung mặt sau
+
+                // 5. Gắn các mặt vào .flashcard-inner
+                innerElement.appendChild(frontFace);
+                innerElement.appendChild(backFace);
+
+                // 6. Gắn .flashcard-inner vào .flashcard
+                cardElement.appendChild(innerElement);
+
+                // 7. Thêm sự kiện click vào thẻ cha (.flashcard) để lật .flashcard-inner
+                cardElement.addEventListener('click', () => {
+                    innerElement.classList.toggle('is-flipped');
+                });
+
+                // 8. Thêm thẻ hoàn chỉnh vào container
+                container.appendChild(cardElement);
+            });
+
+            // **Quan trọng: Gọi MathJax để render công thức sau khi tất cả thẻ đã được thêm vào DOM**
+            if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                MathJax.typesetPromise([container]) // Chỉ định container chứa thẻ
+                    .then(() => {
+                        console.log('MathJax typesetting complete for displayed cards.');
+                    }).catch((err) => {
+                        console.error('MathJax typesetting error:', err);
+                    });
+            } else {
+                 console.warn('MathJax is not ready for typesetting yet.');
+                 // Có thể thử lại sau một khoảng trễ ngắn nếu cần
+                 // setTimeout(() => MathJax.typesetPromise([container]), 500);
+            }
+
+
+            // Cập nhật bộ đếm
+            const count = currentCardsData.length;
+            if (count < numToShow && allData.length >= numToShow ) { // Chỉ hiển thị cảnh báo nếu có đủ thẻ nhưng chỉ lấy được ít hơn
+                 counterElement.innerText = `Đang hiển thị ${count} thẻ (tối đa hiện có).`;
+            } else {
+                 counterElement.innerText = `Đang hiển thị ${count} thẻ.`;
+            }
+             if (isRandom) {
+                counterElement.innerText += " (Ngẫu nhiên)";
+            } else {
+                 counterElement.innerText += " (Theo thứ tự)";
+            }
+        }
+
+        // --- Event Listeners ---
+        loadButton.addEventListener('click', displayCards);
+        // Optional: Cũng có thể tải lại thẻ khi checkbox thay đổi
+        // randomCheckbox.addEventListener('change', displayCards);
+
+        // Initial data fetch on page load
+        document.addEventListener('DOMContentLoaded', fetchAllData);
+
+    </script>
+</body>
+</html>
