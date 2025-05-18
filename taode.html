@@ -91,8 +91,11 @@
       background-color: #4CAF50;
       color: white;
     }
+    .empty-answer {
+      background-color: #fdd;
+      color: #a00;
+    }
   </style>
-  
   <script>
     MathJax = {
       tex: {
@@ -130,16 +133,19 @@ Lời giải: Đạo hàm của phương trình là ${tinh: derivative('!a#0!*x^
       </thead>
       <tbody></tbody>
     </table>
+    <h2>Bảng đáp án trống</h2>
+    <table class="answer-table" id="emptyAnswerTable">
+      <thead>
+        <tr><th>Câu</th><th>Đáp án</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
   <script>
-    // Utility function to get a random integer within a range
     function getRandomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-
-    // Utility function to get a random non-zero integer within a range
     function getRandomNonZero(min, max) {
       let value;
       do {
@@ -147,8 +153,6 @@ Lời giải: Đạo hàm của phương trình là ${tinh: derivative('!a#0!*x^
       } while (value === 0);
       return value;
     }
-
-    // Utility function to shuffle an array (Fisher-Yates shuffle)
     function shuffleArray(array) {
       const newArray = [...array];
       for (let i = newArray.length - 1; i > 0; i--) {
@@ -157,204 +161,166 @@ Lời giải: Đạo hàm của phương trình là ${tinh: derivative('!a#0!*x^
       }
       return newArray;
     }
-
-    // Utility function to escape special characters for use in RegExp
     function escapeRegExp(string) {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
-
-    /**
-     * Extracts base variable names (e.g., "a", "b") from !variable! placeholders in the template.
-     * It avoids extracting from within {tinh:...} blocks.
-     * Example: "!a#0! + !b:1:5!" -> ["a", "b"]
-     */
     function extractVariables(template) {
-        const varRegex = /!([a-zA-Z]\w*).*?!/g; // Matches !name...!, captures 'name'
+        const varRegex = /!([a-zA-Z]\w*).*?!/g;
         let match;
         const vars = new Set();
-        // Remove {tinh:...} blocks temporarily to avoid extracting variables from them
         const templateWithoutCalc = template.replace(/{tinh:[^}]+}/g, '');
         while ((match = varRegex.exec(templateWithoutCalc)) !== null) {
-            vars.add(match[1]); // Add the base variable name (e.g., 'a' from '!a#0!')
+            vars.add(match[1]);
         }
         return Array.from(vars);
     }
-
-    /**
-     * Replaces !variable! placeholders in a string with their corresponding values from the variables object.
-     * Example: template = "!a! + !b!", variables = {a: 5, b: 3} -> "5 + 3"
-     */
     function replaceVariables(template, variables) {
-        // Regex to find all forms of !variable! placeholders
-        // It captures the base variable name like 'a' from '!a#0!' or '!a:1:5!' or '!a!'
         return template.replace(/!([a-zA-Z]\w*).*?!/g, (fullMatch, varName) => {
             return variables[varName] !== undefined ? variables[varName] : fullMatch;
         });
     }
-    
-    /**
-     * Simplifies a mathematical expression string using math.js.
-     * Returns the original expression if simplification fails.
-     */
-    function simplifyExpression(expr) {
-      try {
-        // Added basic pre-simplification for common cases like "2 + -3" -> "2 - 3"
-        let preSimplifiedExpr = expr.replace(/\+\s*-\s*/g, '- ');
-        preSimplifiedExpr = preSimplifiedExpr.replace(/-\s*-\s*/g, '+ ');
-        return math.simplify(preSimplifiedExpr).toString();
-      } catch (e) {
-        // console.warn("Could not simplify expression:", expr, e);
-        return expr; // Return original expression if simplification fails
+    // Beautify a polynomial expression: e.g. -1x^3 + 0x^2 + 1x + 0 => "-x^3 + x"
+    function beautifyPolynomial(expr) {
+      // Tách 2 vế
+      let [lhs, rhs] = expr.split('=');
+      if (!lhs) return expr;
+      lhs = lhs.trim();
+      rhs = rhs ? rhs.trim() : '';
+
+      // Tìm các hạng tử dạng ax^n, ax, số tự do
+      // Hỗ trợ đa thức bậc 3, 2, 1, số tự do
+      const regex = /([+-]?\d+)\*?x\^3|([+-]?\d+)\*?x\^2|([+-]?\d+)\*?x(?![\^])|([+-]?\d+)(?![x\d])/g;
+      let match;
+      let terms = {3: 0, 2: 0, 1: 0, 0: 0};
+      let rest = lhs.replace(/([-+]?\d+\*?x\^3)|([-+]?\d+\*?x\^2)|([-+]?\d+\*?x(?![\^]))|([-+]?\d+)(?![x\d])/g, '');
+
+      // Lặp qua các hạng tử
+      let termRegex = /([+-]?\d+)\*?x\^3|([+-]?\d+)\*?x\^2|([+-]?\d+)\*?x(?![\^])|([+-]?\d+)(?![x\d])/g;
+      while ((match = termRegex.exec(lhs)) !== null) {
+        if (match[1]) { // x^3
+          terms[3] += parseInt(match[1]);
+        } else if (match[2]) { // x^2
+          terms[2] += parseInt(match[2]);
+        } else if (match[3]) { // x
+          terms[1] += parseInt(match[3]);
+        } else if (match[4]) { // số tự do
+          terms[0] += parseInt(match[4]);
+        }
       }
+
+      // Tạo lại đa thức đẹp
+      let poly = '';
+      for (let n = 3; n >= 1; n--) {
+        let a = terms[n];
+        if (a === 0) continue;
+        if (poly.length > 0) {
+          poly += (a > 0 ? ' + ' : ' - ');
+          if (Math.abs(a) !== 1) poly += Math.abs(a);
+          poly += 'x';
+          if (n !== 1) poly += '^' + n;
+        } else {
+          if (a === 1) poly += 'x' + (n === 1 ? '' : '^' + n);
+          else if (a === -1) poly += '-x' + (n === 1 ? '' : '^' + n);
+          else poly += a + 'x' + (n === 1 ? '' : '^' + n);
+        }
+      }
+      if (terms[0] !== 0) {
+        if (poly.length > 0) {
+          poly += (terms[0] > 0 ? ' + ' : ' - ') + Math.abs(terms[0]);
+        } else {
+          poly += terms[0];
+        }
+      }
+      // Nếu đa thức rỗng (tất cả hệ số = 0)
+      if (poly.trim() === '') poly = '0';
+
+      // Thêm lại phần còn lại (nếu có)
+      poly += rest ? rest : '';
+      return rhs ? (poly + ' = ' + rhs) : poly;
     }
 
-    /**
-     * Evaluates {tinh: expression} placeholders in a template string.
-     * Assumes !var! placeholders *within* the expression have *already* been substituted by their numeric values
-     * before this function is called (e.g. by a global replaceVariables pass).
-     */
-    function evaluateCalculations(templateWithNumbers, variables) { // `variables` might not be strictly needed here if all !var! are numbers
-        const calcRegex = /{tinh:\s*([^}]+)}/g; // Matches {tinh: ...}
+    function simplifyExpression(expr) {
+      try {
+        let preSimplifiedExpr = expr.replace(/\+\s*-\s*/g, '- ').replace(/-\s*-\s*/g, '+ ');
+        return math.simplify(preSimplifiedExpr).toString();
+      } catch (e) {
+        return expr;
+      }
+    }
+    function evaluateCalculations(templateWithNumbers, variables) {
+        const calcRegex = /{tinh:\s*([^}]+)}/g;
         return templateWithNumbers.replace(calcRegex, (match, exprFromTemplate) => {
             try {
                 let finalExprToEvaluate = exprFromTemplate;
-
-                // Special handling for derivative expressions
                 if (exprFromTemplate.trim().startsWith("derivative")) {
                     const derivativeMatch = exprFromTemplate.match(/derivative\s*\(\s*'([^']*)'\s*,\s*'([^']*)'\s*\)/);
                     if (derivativeMatch) {
-                        let functionString = derivativeMatch[1]; // e.g., '2*x^2 + 3' (already has numbers)
-                        const variableOfDifferentiation = derivativeMatch[2]; // e.g., 'x'
-                        
-                        // The functionString should already have numbers from the global replaceVariables pass.
-                        // An additional replaceVariables call here would be redundant but harmless.
-                        // const actualFunctionString = replaceVariables(functionString, variables); 
-                        
+                        let functionString = derivativeMatch[1];
+                        const variableOfDifferentiation = derivativeMatch[2];
                         const derivativeResult = math.derivative(functionString, variableOfDifferentiation).toString();
-                        return simplifyExpression(derivativeResult);
+                        return beautifyPolynomial(derivativeResult);
                     }
                 }
-
-                // For all other expressions, they should already have numbers.
-                // The `variables` object in math.evaluate scope is for functions or pre-defined constants,
-                // not for substituting !var! here.
-                const result = math.evaluate(finalExprToEvaluate, {}); // Pass empty scope
+                const result = math.evaluate(finalExprToEvaluate, {});
                 return simplifyExpression(result.toString());
-
             } catch (e) {
-                // console.error("Error in evaluateCalculations for expr:", exprFromTemplate, e);
                 return `[Lỗi tính toán: ${e.message}]`;
             }
         });
     }
-    
-   /**
-     * Generates random values for variables.
-     * Then, replaces all !variable! placeholders in the template with these numeric values.
-     * Finally, beautifies the main equation part of this number-substituted template.
-     */
     function lamdepbt(originalTemplate) {
         const varNames = extractVariables(originalTemplate);
         const generatedVariables = {};
-
-        // Populate generatedVariables with random numbers based on !varName..._! syntax
         varNames.forEach(varName => {
-            let minVal = -10, maxVal = 10; // Default range for !varName! and !varName#0!
-            
+            let minVal = -10, maxVal = 10;
             const rangeRegex = new RegExp(`!${escapeRegExp(varName)}:(-?\\d+):(-?\\d+)!`);
             const rangeMatch = originalTemplate.match(rangeRegex);
-            
             const nonZeroRegex = new RegExp(`!${escapeRegExp(varName)}#0!`);
-            const plainRegex = new RegExp(`!${escapeRegExp(varName)}!`); // Matches !varName!
-
+            const plainRegex = new RegExp(`!${escapeRegExp(varName)}!`);
             if (rangeMatch) {
                 minVal = parseInt(rangeMatch[1]);
                 maxVal = parseInt(rangeMatch[2]);
                 generatedVariables[varName] = getRandomInt(minVal, maxVal);
             } else if (originalTemplate.match(nonZeroRegex)) {
                 generatedVariables[varName] = getRandomNonZero(minVal, maxVal);
-            } else if (originalTemplate.match(plainRegex)) { // Must be checked after more specific ones
+            } else if (originalTemplate.match(plainRegex)) {
                 generatedVariables[varName] = getRandomInt(minVal, maxVal);
             } else {
-                // Fallback or error if a varName was extracted but no pattern matched
-                // This case should ideally not be reached if extractVariables is robust
-                generatedVariables[varName] = getRandomInt(minVal, maxVal); 
+                generatedVariables[varName] = getRandomInt(minVal, maxVal);
             }
         });
 
-        // Globally replace all !variable! placeholders with their generated numeric values first.
         let templateWithNumbers = replaceVariables(originalTemplate, generatedVariables);
-        
-        let finalProcessedTemplate = templateWithNumbers; // Start with the globally substituted template
 
-        // Now, try to find and beautify the main equation part (which now contains numbers).
+        // Beautify equation line (first line up to '=')
+        let finalProcessedTemplate = templateWithNumbers;
         const mainEquationMatch = templateWithNumbers.match(/^([^ABCD]*?=[^ABCD\n]*)/m);
-
         if (mainEquationMatch) {
-            let equationPartWithNumbers = mainEquationMatch[0]; // e.g., "Cho phương trình 2x^3 + -3x = 0"
-            let beautifiedEquation = equationPartWithNumbers;
-
-            // Apply beautifications to the equation part that already has numbers
-            // Handle "1x" -> "x", "1x^2" -> "x^2", but not "11x"
-            beautifiedEquation = beautifiedEquation.replace(/\b1([a-zA-Z](?:\^[0-9]+)?\b)/g, '$1');
-            beautifiedEquation = beautifiedEquation.replace(/\+\s*-\s*/g, '- '); // Example: "2 + -3" becomes "2 - 3"
-            beautifiedEquation = beautifiedEquation.replace(/-\s*-\s*/g, '+ '); // Example: "2 - -3" becomes "2 + 3"
-            
-            // Attempt to simplify the LHS of the equation using math.js
-            const eqParts = beautifiedEquation.split('=');
-            if (eqParts.length === 2) {
-                try {
-                    const simplifiedLHS = simplifyExpression(eqParts[0].trim()); 
-                    beautifiedEquation = simplifiedLHS + " = " + eqParts[1].trim();
-                } catch (e) {
-                    // console.warn("Could not simplify LHS of equation:", eqParts[0].trim(), e);
-                    // If simplification fails, use the regex-beautified version
-                }
-            }
-            
-            // Replace the matched (and now beautified) equation part in `templateWithNumbers`
+            let equationPartWithNumbers = mainEquationMatch[0];
+            // Sử dụng beautifyPolynomial
+            let beautifiedEquation = beautifyPolynomial(equationPartWithNumbers);
             finalProcessedTemplate = templateWithNumbers.replace(equationPartWithNumbers, beautifiedEquation);
         }
-        
         return { template: finalProcessedTemplate, variables: generatedVariables };
     }
-
-
-    /**
-     * Creates a single question HTML structure with shuffled answers.
-     */
     function createQuestion(index, rawTemplate) {
-        // Step 1: Generate variables and get a template where all !var! are numbers and the main equation is beautified.
         const { template: processedTemplateWithNumbers, variables } = lamdepbt(rawTemplate);
-        
-        // Step 2: Evaluate all {tinh:...} blocks. These blocks might contain expressions
-        // that were originally like '!a! + !b!', which are now '5 + 3' (if a=5,b=3)
-        // after the global replace in lamdepbt.
         let questionStr = evaluateCalculations(processedTemplateWithNumbers, variables);
-        
-        const parts = questionStr.split(/\n\s*\n/); 
-        const mainBlock = parts[0]; 
+
+        const parts = questionStr.split(/\n\s*\n/);
+        const mainBlock = parts[0];
         const solutionPart = parts.slice(1).join('\n\n').replace(/^Lời giải:\s*/i, '').trim();
 
         const questionLines = mainBlock.split('\n');
         const questionContent = questionLines[0].trim();
 
         let originalCorrectAnswerValue = null;
-
-        // Find the original correct answer (Option A from the rawTemplate)
-        // This involves evaluating its {tinh:...} block using the *generatedVariables*
         const originalAOptionMatch = rawTemplate.match(/A\.\s*({tinh:[^}]+}|[^}\n]+)/);
         if (originalAOptionMatch) {
-            let tempCorrectValueContainer = originalAOptionMatch[1]; // This is like "{tinh:!a!*2}" or "some text"
-            // If it's a {tinh:...} block, evaluate it using the generated variables
+            let tempCorrectValueContainer = originalAOptionMatch[1];
             if (tempCorrectValueContainer.startsWith("{tinh:")) {
-                // We need to evaluate this specific {tinh:...} block from rawTemplate
-                // using the generatedVariables.
-                // evaluateCalculations expects a full template string.
-                // So, we pass only this {tinh:...} block.
                 originalCorrectAnswerValue = evaluateCalculations(tempCorrectValueContainer, variables);
             } else {
-                 // If it's plain text, it might still contain !var! that need substitution.
                 originalCorrectAnswerValue = replaceVariables(tempCorrectValueContainer, variables);
             }
             originalCorrectAnswerValue = originalCorrectAnswerValue.trim();
@@ -365,22 +331,18 @@ Lời giải: Đạo hàm của phương trình là ${tinh: derivative('!a#0!*x^
         for (let i = 1; i < questionLines.length; i++) {
             const match = questionLines[i].match(optionRegex);
             if (match) {
-                currentOptions.push(match[2].trim()); // These options are already evaluated from questionStr
+                currentOptions.push(match[2].trim());
             }
         }
-        
+
+        let errorFlag = false;
         if (currentOptions.length !== 4 || originalCorrectAnswerValue === null) {
-            console.error("Lỗi phân tích lựa chọn hoặc tìm đáp án gốc:", questionContent, "Giá trị A gốc:", originalCorrectAnswerValue, "Lựa chọn đã phân tích:", currentOptions);
-            return { html: `<div class="question"><strong>Câu ${index}:</strong> Lỗi tạo câu hỏi. Vui lòng kiểm tra mẫu.</div>`, correct: 'Lỗi', solution: '' };
+            errorFlag = true;
         }
 
         const shuffledAnswers = shuffleArray(currentOptions);
         const correctIndex = shuffledAnswers.findIndex(ans => ans === originalCorrectAnswerValue);
         const correctLetter = ['A', 'B', 'C', 'D'][correctIndex];
-
-        if (!correctLetter) {
-             console.error("Không tìm thấy đáp án đúng trong danh sách đã xáo trộn. Gốc:", originalCorrectAnswerValue, "Đã xáo trộn:", shuffledAnswers);
-        }
 
         let formattedQuestion = `
           <div class="question">
@@ -393,52 +355,63 @@ Lời giải: Đạo hàm của phương trình là ${tinh: derivative('!a#0!*x^
             formattedQuestion += `<div class="solution"><strong>Lời giải:</strong> ${solutionPart}</div>`;
         }
         formattedQuestion += `</div>`;
-        
-        return { html: formattedQuestion, correct: correctLetter || 'N/A', solution: solutionPart };
-    }
 
+        return { html: errorFlag ? `<div class="question"><strong>Câu ${index}:</strong> Lỗi tạo câu hỏi. Vui lòng kiểm tra mẫu.</div>` : formattedQuestion, correct: errorFlag ? 'Lỗi' : (correctLetter || ''), solution: solutionPart };
+    }
     document.getElementById('generateBtn').addEventListener('click', () => {
       const template = document.getElementById('problemTemplate').value;
       const num = parseInt(document.getElementById('numQuestions').value);
       const examArea = document.getElementById('examArea');
       const answerTableBody = document.getElementById('answerTable').getElementsByTagName('tbody')[0];
-      
+      const emptyAnswerTableBody = document.getElementById('emptyAnswerTable').getElementsByTagName('tbody')[0];
+
       examArea.innerHTML = '';
-      answerTableBody.innerHTML = ''; 
-      
+      answerTableBody.innerHTML = '';
+      emptyAnswerTableBody.innerHTML = '';
+
       let questionsTextFileContent = '';
       let answersTextFileContent = 'Bảng đáp án:\nCâu | Đáp án\n----|--------\n';
+      let emptyAnswersTextFileContent = 'Bảng đáp án trống:\nCâu | Đáp án\n----|--------\n';
 
       for (let i = 1; i <= num; i++) {
-        let { html, correct, solution } = createQuestion(i, template);
+        let { html, correct } = createQuestion(i, template);
         examArea.innerHTML += html;
-        
+
         const newRow = answerTableBody.insertRow();
         newRow.insertCell().textContent = i;
         newRow.insertCell().textContent = correct;
-        
+        if (!correct || correct === 'Lỗi') {
+          newRow.cells[1].classList.add('empty-answer');
+        }
+
+        const emptyRow = emptyAnswerTableBody.insertRow();
+        emptyRow.insertCell().textContent = i;
+        emptyRow.insertCell().textContent = '';
+        emptyRow.cells[1].classList.add('empty-answer');
+
         let plainTextQuestion = `Câu ${i}:\n${html.replace(/<strong>Lời giải:<\/strong>/gi, '\nLời giải:')
-                                                  .replace(/<\/?[^>]+(>|$)/g, "") 
-                                                  .replace(/^\s+/gm, '')          
-                                                  .replace(/\n\s*\n/g, '\n')}\n\n`;
+                                               .replace(/<\/?[^>]+(>|$)/g, "")
+                                               .replace(/^\s+/gm, '')
+                                               .replace(/\n\s*\n/g, '\n')}\n\n`;
         questionsTextFileContent += plainTextQuestion;
         answersTextFileContent += `${i}\t| ${correct}\n`;
+        emptyAnswersTextFileContent += `${i}\t| \n`;
       }
 
-      document.getElementById('downloadBtn').style.display = 'inline-block'; 
+      document.getElementById('downloadBtn').style.display = 'inline-block';
       document.getElementById('downloadBtn').onclick = () => {
-        const fullText = `ĐỀ TRẮC NGHIỆM\n\n${questionsTextFileContent}\n\n${answersTextFileContent}`;
+        const fullText = `ĐỀ TRẮC NGHIỆM\n\n${questionsTextFileContent}\n\n${answersTextFileContent}\n\n${emptyAnswersTextFileContent}`;
         const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = 'de_toan_trac_nghiem.txt';
-        document.body.appendChild(link); 
+        document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       };
-      
+
       if (window.MathJax) {
-        MathJax.typesetPromise([examArea, answerTableBody]).catch(function (err) {
+        MathJax.typesetPromise([examArea, answerTableBody, emptyAnswerTableBody]).catch(function (err) {
           console.error('MathJax typeset error: ' + err.message);
         });
       }
