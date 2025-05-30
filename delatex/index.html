@@ -1,0 +1,1101 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tạo Bài Tập Tương Tự từ LaTeX</title>
+  <style>
+    /* Reset hoặc base styles nhẹ */
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; /* Font hiện đại, fallback tốt */
+      line-height: 1.6;
+      padding: 20px; /* Giảm padding tổng thể để container không quá nhỏ trên màn hình nhỏ */
+      background-color: #eef2f6; /* Nền nhạt, dễ chịu */
+      color: #333;
+      margin: 0;
+      display: flex;
+      justify-content: center; /* Căn giữa container */
+      align-items: flex-start;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px; /* Bo tròn nhiều hơn */
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); /* Bóng đổ nhẹ và hiện đại */
+      width: 95%; /* <-- Đã sửa thành 95% */
+      max-width: 95%; /* Giới hạn chiều rộng tối đa trên màn hình lớn */
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 25px; /* Khoảng cách giữa các block */
+    }
+
+    h1, h2 {
+      color: #0056b3; /* Giữ màu xanh thương hiệu */
+      border-bottom: 1px solid #e0e0e0; /* Đường gạch chân mỏng hơn */
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      font-weight: 600; /* Chữ hơi đậm */
+    }
+
+    label {
+        font-weight: 600; /* Label đậm hơn */
+        color: #555;
+        display: block; /* Đảm bảo label đứng trên input nếu cần */
+        margin-bottom: 5px;
+    }
+
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ced4da; /* Màu border nhẹ */
+      border-radius: 6px;
+      font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+      font-size: 1em;
+      box-sizing: border-box;
+      resize: vertical;
+      min-height: 300px;
+      transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    textarea:focus {
+        border-color: #007bff; /* Màu border khi focus */
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Hiệu ứng focus nhẹ */
+        outline: none; /* Loại bỏ outline mặc định */
+    }
+
+    input[type="number"] {
+      padding: 8px 12px; /* Padding thêm 2 bên để nội dung không sát spin button */
+      border: 1px solid #ced4da;
+      border-radius: 6px; /* Bo tròn tương tự textarea */
+      font-family: inherit;
+      font-size: 1em;
+      width: 80px; /* Giữ chiều rộng cố định */
+      text-align: center;
+      /* --- ĐÂY LÀ PHẦN BỎ COMMENT ĐỂ SPIN BUTTON HIỆN LẠI --- */
+      /* Bỏ hoặc comment các dòng sau: */
+      /* -moz-appearance: textfield; */
+      /* input[type="number"]::-webkit-outer-spin-button, */
+      /* input[type="number"]::-webkit-inner-spin-button { */
+      /*   -webkit-appearance: none; */
+      /*   margin: 0; */
+      /* } */
+       /* --- KẾT THÚC PHẦN BỎ COMMENT --- */
+       transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+     input[type="number"]:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+
+
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px; /* Tăng padding */
+      border: none;
+      border-radius: 6px; /* Bo tròn tương tự input/textarea */
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.2s ease, opacity 0.2s ease;
+      text-align: center;
+      font-weight: 600; /* Chữ đậm hơn */
+      display: inline-flex; /* Dùng flex để căn giữa nội dung button */
+      align-items: center;
+      justify-content: center;
+      gap: 5px; /* Khoảng cách nếu có icon sau này */
+    }
+
+    button:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      opacity: 0.7; /* Giảm opacity */
+      cursor: not-allowed;
+    }
+
+    #controls {
+      display: flex;
+      align-items: center; /* Căn chỉnh theo chiều dọc */
+      gap: 20px; /* Tăng khoảng cách giữa các control */
+      flex-wrap: wrap; /* Cho phép xuống dòng trên màn hình nhỏ */
+      margin-bottom: 15px; /* Khoảng cách dưới nhóm controls */
+    }
+
+     #controls > div {
+         display: flex; /* Dùng flex cho các nhóm label/input */
+         align-items: center;
+         gap: 8px; /* Khoảng cách giữa label và input/checkbox */
+     }
+
+     #controls label {
+         margin-bottom: 0; /* Bỏ margin-bottom vì đã dùng flex gap */
+         font-weight: 600;
+         color: #555;
+     }
+
+    #includeSolutionsContainer {
+      /* display: flex; Bỏ vì đã dùng flex ở div cha */
+      /* align-items: center; Bỏ vì đã dùng flex ở div cha */
+      /* gap: 5px; Bỏ vì đã dùng flex gap ở div cha */
+      /* margin-right: 10px; Bỏ, dùng gap */
+    }
+
+    #includeSolutionsContainer input[type="checkbox"] {
+        margin: 0; /* Đảm bảo margin 0 */
+        width: 16px; /* Kích thước chuẩn */
+        height: 16px;
+        flex-shrink: 0; /* Không bị co lại trong flex */
+    }
+
+     /* Style chung cho các thông báo trạng thái/lỗi */
+     .status-message {
+        margin-top: 10px; /* Khoảng cách với element phía trên */
+        padding: 10px;
+        border-radius: 4px;
+        min-height: 1.2em;
+        word-break: break-word;
+        font-weight: 600;
+        /* transition: all 0.3s ease;  Thêm hiệu ứng chuyển đổi nếu cần */
+     }
+
+      .status-message:empty { /* Ẩn khi không có nội dung */
+        display: none;
+     }
+
+
+    /* Style cụ thể cho các div trạng thái */
+    #status {
+      /* Kế thừa .status-message */
+      color: #007bff; /* Màu xanh dương */
+      background-color: #e9f5ff; /* Nền nhẹ */
+      border-left: 4px solid #007bff; /* Border bên trái */
+    }
+
+    #error {
+       /* Kế thừa .status-message */
+      color: #dc3545; /* Màu đỏ */
+      background-color: #f8d7da; /* Nền đỏ nhẹ */
+      border-left: 4px solid #dc3545;
+    }
+
+
+    /* --- New CSS for API Key Config --- */
+    #apiKeyConfig {
+        border: 1px solid #e0e0e0;
+        padding: 20px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    #apiKeyConfig h2 {
+         margin-top: 0;
+         color: #0056b3;
+         margin-bottom: 0;
+         border-bottom: none;
+         padding-bottom: 0;
+         font-weight: 600;
+    }
+
+    .api-key-input-group {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Khoảng cách giữa input và các button */
+        flex-wrap: wrap; /* Cho phép xuống dòng trên màn hình nhỏ */
+    }
+
+    .api-key-input-group label {
+        font-weight: 600;
+        color: #555;
+        flex-shrink: 0; /* Ngăn label bị co lại */
+         margin-bottom: 0; /* Bỏ margin-bottom vì đã dùng flex gap */
+    }
+
+    .api-key-input-group input[type="text"] {
+        flex-grow: 1; /* Cho phép input lấp đầy không gian còn lại */
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 1em;
+         min-width: 200px; /* Đảm bảo input có chiều rộng tối thiểu */
+         transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .api-key-input-group input[type="text"]:focus {
+         border-color: #007bff;
+         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+         outline: none;
+    }
+
+     /* Style cho các button trong nhóm API key */
+     .api-key-input-group button {
+         padding: 8px 15px; /* Padding nhỏ hơn button chính */
+         font-size: 0.95em;
+     }
+
+    #clearApiKeyBtn {
+        background-color: #dc3545; /* Màu đỏ */
+    }
+    #clearApiKeyBtn:hover:not(:disabled) {
+        background-color: #c82333;
+    }
+
+
+    #apiKeyStatus {
+        /* Kế thừa .status-message */
+        background-color: #e9f5ff; /* Nền xanh nhạt (default) */
+        color: #007bff; /* Màu chữ xanh dương (default) */
+        border-left: 4px solid #007bff; /* Border trái xanh (default) */
+    }
+
+     /* --- End New CSS --- */
+
+
+    #resultAreaContainer {
+      margin-top: 0;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px; /* Bo tròn nhẹ */
+      background-color: #f8f9fa; /* Nền xám nhạt */
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    #resultAreaContainer h2 {
+      margin-top: 0;
+      color: #0056b3;
+      margin-bottom: 0;
+      border-bottom: none;
+      padding-bottom: 0;
+      font-weight: 600;
+    }
+
+    #resultControls {
+      display: flex;
+      justify-content: flex-end; /* Căn phải */
+      gap: 10px;
+    }
+
+    #resultArea {
+        /* Kế thừa style từ textarea chung */
+        min-height: 200px; /* Giảm min-height so với input gốc */
+         background-color: #e9ecef; /* Màu nền khác biệt nhẹ */
+         border: 1px solid #ced4da;
+    }
+
+
+    #copyResultBtn {
+      background-color: #6c757d; /* Màu xám */
+    }
+
+    #copyResultBtn:hover:not(:disabled) {
+      background-color: #5a6268;
+    }
+
+    .back-link {
+      display: inline-block; /* Dùng inline-block để có thể căn giữa text-align */
+      margin-top: 25px;
+      text-align: center;
+      color: #007bff;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .back-link:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Tạo Bài Tập Tương Tự</h1>
+
+    <p>Dán nội dung LaTeX chứa một hoặc nhiều bài tập (mỗi bài trong môi trường <code>\begin{ex}...\end{ex}</code>) vào ô bên dưới. Chỉ bài tập <strong>đầu tiên</strong> được tìm thấy sẽ được dùng làm mẫu để tạo các bài tập tương tự.</p>
+
+    <!-- NEW API KEY CONFIG SECTION -->
+    <div id="apiKeyConfig">
+        <h2>Cấu hình API Key</h2>
+        <p>Nếu bạn muốn sử dụng API Key của riêng mình (từ Google AI Studio), hãy nhập vào ô bên dưới. Key sẽ được lưu an toàn trong trình duyệt của bạn và được ưu tiên sử dụng. Nếu ô này trống và bạn không lưu Key, ứng dụng sẽ sử dụng Key của admin.</p>
+        <div class="api-key-input-group">
+            <label for="userApiKey">API Key:</label>
+            <input type="text" id="userApiKey" placeholder="Nhập API Key của bạn tại đây...">
+            <button id="saveApiKeyBtn">Lưu Key</button>
+            <button id="clearApiKeyBtn">Xóa Key đã lưu</button>
+        </div>
+        <div id="apiKeyStatus" class="status-message"></div>
+    </div>
+    <!-- END NEW API KEY CONFIG SECTION -->
+
+
+    <div>
+      <label for="sourceExercise">Nội dung LaTeX (Bài tập mẫu):</label>
+      <textarea id="sourceExercise" placeholder="Dán nội dung LaTeX chứa bài tập gốc ở đây. Ví dụ: \begin{ex}...\end{ex}..."></textarea>
+    </div>
+
+    <div id="controls">
+        <div>
+          <label for="numExercises">Số lượng bài tập tương tự:</label>
+          <input type="number" id="numExercises" value="10" min="1" max="50">
+        </div>
+
+        <div id="includeSolutionsContainer">
+          <input type="checkbox" id="includeSolutions">
+          <label for="includeSolutions">Kèm lời giải chi tiết</label>
+        </div>
+
+        <button id="generateBtn" disabled>Tạo Bài Tập</button>
+    </div>
+
+    <div id="status" class="status-message"></div> <!-- Thêm class status-message -->
+    <div id="error" class="status-message"></div> <!-- Thêm class status-message -->
+
+    <div id="resultAreaContainer">
+      <h2>Kết quả:</h2>
+      <div id="resultControls">
+        <button id="copyResultBtn" disabled>Copy Kết Quả</button>
+      </div>
+      <textarea id="resultArea" placeholder="Bài tập tương tự sẽ hiển thị ở đây..." readonly></textarea>
+    </div>
+
+     <a href="index.html" class="back-link">← Quay lại trang chủ</a>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const sourceExerciseTextarea = document.getElementById('sourceExercise');
+    const numExercisesInput = document.getElementById('numExercises');
+    const includeSolutionsCheckbox = document.getElementById('includeSolutions');
+    const generateBtn = document.getElementById('generateBtn');
+    const resultAreaTextarea = document.getElementById('resultArea');
+    const copyResultBtn = document.getElementById('copyResultBtn');
+    const statusDiv = document.getElementById('status');
+    const errorDiv = document.getElementById('error');
+
+    // --- New DOM Elements for API Key Config ---
+    const userApiKeyInput = document.getElementById('userApiKey');
+    const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+    const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
+    const apiKeyStatusDiv = document.getElementById('apiKeyStatus');
+
+
+    // --- Variables ---
+    let appConfig = null; // Config loaded from png2tex_v6.json
+    let userReplacements = []; // User-defined replacements from local storage
+    let userApiKey = null; // User-defined API Key from local storage
+
+    const localStorageUserRulesKey = 'ocrAppUserReplacements'; // Key for user replacement rules
+    const localStorageUserApiKey = 'userGeminiApiKey'; // Key for user API Key
+    const configFileName = 'png2tex_v6.json'; // API config file name
+
+    const defaultNumExercises = 10;
+    const minNumExercises = 1;
+    const maxExercises = 50; // Limit quantity to avoid overly large requests
+
+    let isProcessing = false;
+
+    // Regex để tìm khối begin{ex}...end{ex}. Cờ 's' cho phép '.' khớp với ký tự xuống dòng.
+    // Regex này tìm kiếm *một lần xuất hiện* của khối \begin{ex}...\end{ex} bất kỳ đâu trong văn bản.
+    const exerciseBlockRegex = /\\begin\{ex\}([\s\S]*?)\\end\{ex\}/s;
+
+
+    // --- Helper Functions ---
+
+    // Load config from png2tex_v6.json
+    // This function now loads config but *doesn't* assume its key will be used.
+    async function loadConfig() {
+        // Status update for config loading is handled in DOMContentLoaded
+        saveApiKeyBtn.disabled = true; // Disable config-related buttons during loading
+        clearApiKeyBtn.disabled = true;
+
+
+        try {
+            const response = await fetch(`./${configFileName}`);
+            if (!response.ok) {
+                 const errorText = await response.text();
+                 // Allow config loading to fail if the file isn't found, but don't block if user has a key
+                 if (response.status === 404) {
+                      console.warn(`${configFileName} không tồn tại hoặc không truy cập được (404). Sẽ chỉ dùng API Key của người dùng nếu có.`);
+                      // Create a minimal config object with empty prompts/replacements to avoid null checks later
+                      return { prompts: {}, replacements: [] };
+                 }
+                 // For other errors, still throw, but we will handle it in the catch block
+                throw new Error(`Không thể tải ${configFileName}: ${response.status} ${response.statusText} - ${errorText}`);
+            }
+            const config = await response.json();
+
+            if (!config.prompts || typeof config.prompts !== 'object') {
+                // This is a critical config error, prompts are needed regardless of key source
+                throw new Error(`File ${configFileName} thiếu đối tượng "prompts" hoặc định dạng sai.`);
+            }
+             // Check for required prompts for this page
+             const requiredPrompts = ['generateSimilar', 'generateSimilarWithSolve'];
+             const missingPrompts = requiredPrompts.filter(key => !config.prompts[key]);
+
+             if (missingPrompts.length > 0) {
+                 console.warn(`Thiếu các prompt quan trọng trong ${configFileName}: ${missingPrompts.join(', ')}. Chức năng tạo bài tập tương tự có thể không hoạt động hoặc bị hạn chế.`);
+             }
+
+             // Check if *both* required prompts are missing - this is a permanent issue for this page
+             if (!config.prompts.generateSimilar && !config.prompts.generateSimilarWithSolve) {
+                  generateBtn.dataset.promptMissing = 'true'; // Mark as permanently disabled
+                  throw new Error(`File ${configFileName} thiếu cả hai prompts "generateSimilar" và "generateSimilarWithSolve".`);
+             }
+
+             // Check for API key in config, but don't throw error if user has one saved.
+             if (!config.geminiApiKey || config.geminiApiKey.trim() === '') {
+                  console.warn(`File ${configFileName} không có geminiApiKey. Sẽ chỉ dùng API Key của người dùng nếu có.`);
+             }
+
+
+             if (config.replacements && !Array.isArray(config.replacements)) {
+                 console.warn('Mục "replacements" trong png2tex_v6.json không phải là mảng. Sẽ bỏ qua phần thay thế từ png2tex_v6.json.');
+                 config.replacements = [];
+             } else if (!config.replacements) {
+                 config.replacements = [];
+             }
+
+            return config; // Return the loaded config object
+        } catch (err) {
+            console.error(`Lỗi khi tải hoặc parse ${configFileName}:`, err);
+            // Set a general error message, more specific error handled by updateButtonState checks
+            errorDiv.textContent = `Lỗi cấu hình: ${err.message}. Vui lòng kiểm tra file ${configFileName}.`;
+            generateBtn.dataset.configError = 'true'; // Mark button state due to config error
+            // Return a minimal config object to avoid null checks elsewhere, but mark it as errored
+            return { prompts: {}, replacements: [], _loadError: true };
+        } finally {
+            // Re-enable API key buttons regardless of config load success, handled by updateButtonState
+            // saveApiKeyBtn.disabled = false; // Disabled state handled by updateButtonState
+            // clearApiKeyBtn.disabled = false; // Disabled state handled by updateButtonState
+             updateButtonState(); // Ensure button states are correct after config load attempt
+        }
+    }
+
+     // Load user replacements from local storage
+     function loadUserReplacements() {
+        try {
+            const savedRules = localStorage.getItem(localStorageUserRulesKey);
+            if (savedRules) {
+                const parsedRules = JSON.parse(savedRules);
+                if (Array.isArray(parsedRules) && parsedRules.every(rule =>
+                     rule && typeof rule.find === 'string' && typeof rule.replace === 'string' && typeof rule.flags === 'string'
+                )) {
+                    userReplacements = parsedRules;
+                    console.log('Loaded user automatic replacement rules:', userReplacements);
+                } else {
+                    console.warn('Invalid data found in local storage for automatic rules, clearing.');
+                    userReplacements = [];
+                    localStorage.removeItem(localStorageUserRulesKey);
+                }
+            } else {
+                userReplacements = [];
+            }
+        } catch (e) {
+            console.error('Error loading user automatic replacements from local storage:', e);
+            userReplacements = [];
+            localStorage.removeItem(localStorageUserRulesKey);
+        }
+    }
+
+    // Load user API Key from local storage
+    function loadUserApiKey() {
+        try {
+            const savedKey = localStorage.getItem(localStorageUserApiKey);
+            if (savedKey && savedKey.trim() !== '') {
+                userApiKey = savedKey.trim();
+                userApiKeyInput.value = userApiKey; // Fill the input field
+                console.log('Loaded user API Key from local storage.');
+            } else {
+                userApiKey = null;
+                userApiKeyInput.value = ''; // Clear the input field
+                console.log('No user API Key found in local storage.');
+            }
+        } catch (e) {
+            console.error('Error loading user API Key from local storage:', e);
+            userApiKey = null;
+             userApiKeyInput.value = '';
+            localStorage.removeItem(localStorageUserApiKey);
+        }
+        // Update button states and status messages after loading key
+        updateButtonState();
+        updateApiKeyStatus();
+    }
+
+    // Save user API Key to local storage
+    function saveUserApiKey() {
+         // Disable buttons briefly to prevent multiple clicks
+         saveApiKeyBtn.disabled = true;
+         clearApiKeyBtn.disabled = true;
+         userApiKeyInput.disabled = true;
+
+
+        const key = userApiKeyInput.value.trim();
+        if (key !== '') {
+            try {
+                localStorage.setItem(localStorageUserApiKey, key);
+                userApiKey = key;
+                console.log('User API Key saved to local storage.');
+                apiKeyStatusDiv.textContent = 'API Key của bạn đã được lưu.';
+                 apiKeyStatusDiv.style.borderColor = '#28a745'; // Green color
+                 apiKeyStatusDiv.style.backgroundColor = '#d4edda'; // Light green background
+                 apiKeyStatusDiv.style.color = '#155724'; // Dark green text
+
+            } catch (e) {
+                console.error('Error saving user API Key to local storage:', e);
+                apiKeyStatusDiv.textContent = 'Lỗi khi lưu API Key. Vui lòng thử lại hoặc kiểm tra cài đặt trình duyệt.';
+                 apiKeyStatusDiv.style.borderColor = '#dc3545'; // Red color
+                 apiKeyStatusDiv.style.backgroundColor = '#f8d7da'; // Light red background
+                 apiKeyStatusDiv.style.color = '#dc3545'; // Dark red text
+            }
+        } else {
+            // If input is empty, treat as clearing
+            clearUserApiKey();
+            // clearUserApiKey already updates status, so return
+            return;
+        }
+        // Re-enable buttons and update general state after a short delay or directly
+         setTimeout(() => {
+              updateButtonState(); // Update general button states based on the new key presence
+         }, 500); // Small delay for visual feedback
+
+    }
+
+    // Clear user API Key from local storage
+    function clearUserApiKey() {
+         // Disable buttons briefly
+         saveApiKeyBtn.disabled = true;
+         clearApiKeyBtn.disabled = true;
+         userApiKeyInput.disabled = true;
+
+         try {
+            localStorage.removeItem(localStorageUserApiKey);
+            userApiKey = null;
+            userApiKeyInput.value = '';
+            console.log('User API Key cleared from local storage.');
+            apiKeyStatusDiv.textContent = 'API Key đã lưu đã được xóa.';
+             apiKeyStatusDiv.style.borderColor = '#ffc107'; // Yellow color
+             apiKeyStatusDiv.style.backgroundColor = '#fff3cd'; // Light yellow background
+             apiKeyStatusDiv.style.color = '#856404'; // Dark yellow text
+
+         } catch (e) {
+             console.error('Error clearing user API Key from local storage:', e);
+             apiKeyStatusDiv.textContent = 'Lỗi khi xóa API Key đã lưu.';
+             apiKeyStatusDiv.style.borderColor = '#dc3545'; // Red color
+             apiKeyStatusDiv.style.backgroundColor = '#f8d7da'; // Light red background
+             apiKeyStatusDiv.style.color = '#dc3545'; // Dark red text
+         }
+         // Re-enable buttons and update general state
+         setTimeout(() => {
+              updateButtonState(); // Update general button states
+         }, 500);
+    }
+
+
+    // Apply replacement rules (config + user)
+     function applyReplacements(text, replacements) {
+         let processedText = text;
+         if (!replacements || !Array.isArray(replacements)) {
+             return text;
+         }
+
+         replacements.forEach(rep => {
+             if (rep && typeof rep.find === 'string' && typeof rep.replace === 'string') {
+                 try {
+                      // Use RegExp if flags are provided and valid
+                      if (rep.flags && typeof rep.flags === 'string' && rep.flags.match(/^[gimuy]*$/)) {
+                          const regex = new RegExp(rep.find, rep.flags);
+                          processedText = processedText.replace(regex, rep.replace);
+                      } else {
+                           // Fallback to literal string replaceAll if no flags or invalid flags
+                           if (rep.flags && !rep.flags.match(/^[gimuy]*$/)) {
+                              console.warn(`Invalid flags "${rep.flags}" for rule "${rep.find}". Falling back to literal string replaceAll.`);
+                           }
+                            processedText = processedText.replaceAll(rep.find, rep.replace);
+                      }
+
+                 } catch (e) {
+                     console.error("Error applying automatic replacement rule:", rep, e);
+                 }
+             } else {
+                 console.warn("Invalid automatic replacement rule or missing 'find'/'replace' property:", rep);
+             }
+         });
+         return processedText;
+     }
+
+    // Add \\ at the end of lines within \loigiai{} unless they end in \\ or are comments
+     function addBackslashesToLoigiai(text) {
+          // Regex to find \loigiai{...} blocks
+          const loigiaiRegex = /(\\loigiai\{)([\s\S]*?)(\})/g;
+          // Function to process the content inside \loigiai{}
+          const processContent = (content) => {
+               // Split content by lines
+               const lines = content.split('\n');
+               const processedLines = lines.map((line, index) => {
+                   // Trim right whitespace
+                   const trimmedLine = line.trimRight();
+                   // Check if it's the last line, empty, already ends with \\, or is a comment line
+                   if (index === lines.length - 1 || trimmedLine === '' || trimmedLine.endsWith('\\\\') || trimmedLine.startsWith('%')) {
+                       return line; // Return original line
+                   }
+                   // Add \\ and keep trailing whitespace if any
+                   return trimmedLine + '\\\\' + line.substring(trimmedLine.length);
+               });
+               return processedLines.join('\n');
+          };
+
+          // Replace using the regex and the processing function
+          return text.replace(loigiaiRegex, (match, g1, g2, g3) => {
+               // g1 is the opening \loigiai{
+               // g2 is the content inside {}
+               // g3 is the closing }
+               return g1 + processContent(g2) + g3;
+          });
+     }
+
+    // Update the specific API Key status message
+    function updateApiKeyStatus() {
+        const configHasKey = appConfig && appConfig.geminiApiKey && appConfig.geminiApiKey.trim() !== '';
+        const userHasKey = userApiKey && userApiKey.trim() !== '';
+
+        // Clear previous status if it's not a persistent error/info
+        // Only clear if it's one of the known status messages we manage here and it's not a loading/error state
+         if (!apiKeyStatusDiv.textContent.startsWith('Lỗi') && !apiKeyStatusDiv.textContent.startsWith('Đang tải')) {
+             apiKeyStatusDiv.textContent = ''; // Reset text
+             // Reset style to default before applying new one
+             apiKeyStatusDiv.style.borderColor = '';
+             apiKeyStatusDiv.style.backgroundColor = '';
+             apiKeyStatusDiv.style.color = '';
+         }
+
+         // Determine the correct message and style
+         let message = '';
+         let borderColor = '';
+         let backgroundColor = '';
+         let color = '';
+
+        if (userHasKey) {
+             message = 'Đang sử dụng API Key của bạn đã lưu.';
+             borderColor = '#28a745'; // Green
+             backgroundColor = '#d4edda'; // Light green
+             color = '#155724'; // Dark green
+        } else if (configHasKey) {
+             message = `Đang sử dụng API Key Của Admin.`;
+             borderColor = '#007bff'; // Blue
+             backgroundColor = '#e9f5ff'; // Light blue
+             color = '#007bff'; // Dark blue
+        } else if (appConfig && appConfig._loadError) {
+             // Config failed to load critically (not just missing key)
+             message = `Lỗi tải cấu hình hoặc thiếu API Key khả dụng. Vui lòng kiểm tra console hoặc file ${configFileName}.`;
+             borderColor = '#dc3545'; // Red
+             backgroundColor = '#f8d7da'; // Light red
+             color = '#dc3545'; // Dark red
+        }
+         else {
+             // No user key, no config key, config loaded without fatal errors (e.g., only missing key)
+             message = `Chưa có API Key khả dụng. Vui lòng nhập API Key của bạn hoặc kiểm tra file ${configFileName}.`;
+             borderColor = '#ffc107'; // Yellow
+             backgroundColor = '#fff3cd'; // Light yellow
+             color = '#856404'; // Dark yellow
+        }
+
+        // Apply the message and style
+        apiKeyStatusDiv.textContent = message;
+        apiKeyStatusDiv.style.borderColor = borderColor;
+        apiKeyStatusDiv.style.backgroundColor = backgroundColor;
+        apiKeyStatusDiv.style.color = color;
+
+
+        // Ensure it's visible if it has content
+        if (apiKeyStatusDiv.textContent) {
+             apiKeyStatusDiv.style.display = 'block';
+        } else {
+             apiKeyStatusDiv.style.display = 'none'; // Use display none if empty
+        }
+    }
+
+
+    // Update the state of the generate button based on inputs and processing state
+    function updateButtonState() {
+        // Config load status: Did we ATTEMPT to load config? appConfig !== null (even if it returned { _loadError: true })
+        // This is needed because prompts are loaded from config.
+        const configAttemptedLoad = appConfig !== null;
+
+        // Fatal errors from config loading (missing prompts, or other load errors)
+        const isPermanentlyDisabled = generateBtn.dataset.promptMissing === 'true' || (appConfig && appConfig._loadError);
+
+        // Check if source text contains at least one exercise block - define locally
+        const sourceText = sourceExerciseTextarea.value.trim();
+        const hasExerciseBlock = exerciseBlockRegex.test(sourceText);
+
+
+        // Validate number input visually and logically - define locally
+         let num = parseInt(numExercisesInput.value, 10);
+         // Clamp value if out of range (optional, UI min/max helps)
+         if (isNaN(num) || num < minNumExercises) {
+              numExercisesInput.value = minNumExercises; // Also update UI
+              num = minNumExercises; // Use clamped value for logic
+         }
+         if (num > maxExercises) {
+             numExercisesInput.value = maxExercises; // Also update UI
+             num = maxExercises; // Use clamped value for logic
+         }
+         const isValidNumberInput = !isNaN(num) && num >= minNumExercises && num <= maxExercises;
+
+
+        // Determine which prompt is needed and if it exists in the config
+        const useSolutions = includeSolutionsCheckbox.checked;
+        const requiredPromptKey = useSolutions ? 'generateSimilarWithSolve' : 'generateSimilar';
+        // Check if the needed prompt exists *in the loaded config*
+        const promptExists = configAttemptedLoad && appConfig && appConfig.prompts && appConfig.prompts[requiredPromptKey];
+
+
+        // Check if ANY API Key is available (user's key or config key)
+        const isApiKeyAvailable = (userApiKey && userApiKey.trim() !== '') || (appConfig && appConfig.geminiApiKey && appConfig.geminiApiKey.trim() !== '');
+
+        // The generate button requires:
+        // 1. Config load attempted (to get prompts/replacements)
+        // 2. No permanent config errors (missing critical prompts or load failure)
+        // 3. The specific needed prompt exists in loaded config
+        // 4. Presence of \begin{ex}...\end{ex} block in source text
+        // 5. Valid number input
+        // 6. An available API key (user's or config's)
+        // 7. Not currently processing
+
+        generateBtn.disabled = !configAttemptedLoad || isPermanentlyDisabled || !promptExists || !hasExerciseBlock || !isValidNumberInput || !isApiKeyAvailable || isProcessing;
+
+
+        // Copy button is enabled if result area has content and not processing
+        copyResultBtn.disabled = resultAreaTextarea.value.trim().length === 0 || isProcessing;
+
+         // Make inputs/buttons readonly/disabled while processing
+         sourceExerciseTextarea.readOnly = isProcessing;
+         numExercisesInput.disabled = isProcessing;
+         includeSolutionsCheckbox.disabled = isProcessing;
+         resultAreaTextarea.readOnly = isProcessing;
+         userApiKeyInput.disabled = isProcessing; // Disable API key input while processing
+         // Disable save if processing OR input hasn't changed from saved value
+         saveApiKeyBtn.disabled = isProcessing || userApiKeyInput.value.trim() === userApiKey;
+         // Disable clear if processing OR no key is currently saved
+         clearApiKeyBtn.disabled = isProcessing || userApiKey === null;
+
+
+         // Clear main error message if a previously blocking condition (like missing key) is now met,
+         // unless there's a permanent config/prompt error.
+         if (!generateBtn.disabled && errorDiv.textContent) {
+              // Only clear errors that are likely temporary API/processing issues or lack of key
+              if (errorDiv.textContent.startsWith('Có lỗi xảy ra khi tạo bài tập tương tự:') || errorDiv.textContent.startsWith('Không thể xử lý "Tạo Bài Tập Tương Tự"') || errorDiv.textContent.includes('API Key khả dụng')) {
+                   // Don't clear if there's a permanent config/prompt error
+                  if (!isPermanentlyDisabled) {
+                      errorDiv.textContent = '';
+                  }
+              }
+         }
+        // API key status is handled by updateApiKeyStatus, call it here too
+        updateApiKeyStatus();
+    }
+
+    // Set the processing state and update UI accordingly
+    function setProcessingState(processing) {
+        isProcessing = processing;
+        // Update all buttons and inputs based on the new processing state
+        updateButtonState();
+        // Specific API key button states are also updated within updateButtonState now
+    }
+
+
+    // --- Core Logic: Generate Similar Exercises ---
+    async function generateSimilar() {
+        const sourceText = sourceExerciseTextarea.value.trim();
+        const num = parseInt(numExercisesInput.value, 10);
+        const includeSolutions = includeSolutionsCheckbox.checked;
+
+         // --- Pre-Checks ---
+         // These checks should ideally mirror the conditions in updateButtonState
+         // that enable the generate button.
+
+         // 1. Check for processing state (should be disabled by button state, but safeguard)
+         if (isProcessing) {
+              console.warn("Attempted to generate while processing.");
+              return; // Already disabled
+         }
+
+         // 2. Validate number input
+         if (isNaN(num) || num < minNumExercises || num > maxExercises) {
+             errorDiv.textContent = `Số lượng bài tập phải nằm trong khoảng từ ${minNumExercises} đến ${maxExercises}.`;
+             statusDiv.textContent = '';
+             numExercisesInput.focus();
+             updateButtonState(); // Ensure UI reflects disabled state
+             return;
+         }
+
+         // 3. Check for valid source exercise block - DEFINE hasExerciseBlock LOCALLY HERE
+         const match = sourceText.match(exerciseBlockRegex);
+         const hasExerciseBlock = match !== null; // Define hasExerciseBlock here!
+
+         if (!hasExerciseBlock) {
+              errorDiv.textContent = 'Nội dung dán vào không chứa khối \\begin{ex}...\\end{ex} hợp lệ nào.';
+              statusDiv.textContent = '';
+              sourceExerciseTextarea.focus();
+              updateButtonState(); // Ensure UI reflects disabled state
+              return;
+         }
+          // Extract the first exercise block found as the sample (now safe as match is not null)
+         const sampleExerciseText = match[0];
+
+
+         // 4. Check config loaded status and permanent errors (should match updateButtonState logic)
+         const configAttemptedLoad = appConfig !== null;
+         const isPermanentlyDisabled = generateBtn.dataset.promptMissing === 'true' || (appConfig && appConfig._loadError);
+
+         if (!configAttemptedLoad || isPermanentlyDisabled) {
+              console.warn("Generation aborted due to config loading issues or permanent errors.");
+               // Error message is likely already set by loadConfig catch or updateButtonState
+               if (!errorDiv.textContent) errorDiv.textContent = "Không thể xử lý do lỗi cấu hình.";
+               statusDiv.textContent = '';
+               updateButtonState(); // Ensure UI reflects disabled state
+              return;
+         }
+
+
+         // 5. Determine which prompt is needed and check its existence (using loaded config)
+         const formatKey = includeSolutions ? 'generateSimilarWithSolve' : 'generateSimilar';
+         const formatName = 'Tạo Bài Tập Tương Tự';
+         const selectedPrompt = appConfig.prompts ? appConfig.prompts[formatKey] : null; // Use appConfig directly now
+
+         if (!selectedPrompt) {
+              console.warn(`Generation aborted: Required prompt "${formatKey}" not found in config.`);
+              errorDiv.textContent = `Cấu hình thiếu prompt "${formatKey}" cần thiết.`;
+              statusDiv.textContent = '';
+              updateButtonState(); // Ensure UI reflects disabled state
+              return;
+         }
+
+         // 6. Determine which key to use: prioritize user key, fallback to config key
+         const apiKeyToUse = userApiKey || (appConfig.geminiApiKey ? appConfig.geminiApiKey : null);
+         const isApiKeyAvailable = apiKeyToUse !== null && apiKeyToUse.trim() !== '';
+
+          if (!isApiKeyAvailable) {
+              console.warn("Generation aborted: No API key available.");
+              errorDiv.textContent = 'Không có API Key khả dụng để xử lý yêu cầu.';
+              statusDiv.textContent = '';
+              updateButtonState(); // Ensure UI reflects disabled state
+              return;
+          }
+
+         // --- End Pre-Checks ---
+
+
+        // Reset UI and Set Processing State
+        statusDiv.textContent = `Đang yêu cầu tạo ${num} bài tập tương tự (kèm lời giải: ${includeSolutions ? 'Có' : 'Không'})...`;
+        errorDiv.textContent = ''; // Clear main error div
+        apiKeyStatusDiv.textContent = ''; // Clear API key status during processing
+        resultAreaTextarea.value = 'Đang xử lý...';
+        resultAreaTextarea.placeholder = 'Đang xử lý...';
+        setProcessingState(true); // Disable button and inputs
+
+
+        try {
+             const API_URL = appConfig.apiUrl || 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'; // Use apiUrl from config if present
+             const finalApiUrl = `${API_URL}?key=${apiKeyToUse}`; // Use the determined API key
+
+             // Construct the prompt string. Replace [SỐ LƯỢNG] placeholder if prompt supports it.
+             // Use the sample exercise text as the context for the AI.
+             let fullPromptText = selectedPrompt;
+             // Check for placeholder variations
+             if (fullPromptText.includes('[SỐ LƯỢNG]')) {
+                 fullPromptText = fullPromptText.replace('[SỐ LƯỢNG]', num);
+             } else if (fullPromptText.includes('[số lượng]')) { // lowercase check
+                  fullPromptText = fullPromptText.replace('[số lượng]', num);
+             }
+             else {
+                  // If the prompt doesn't have the placeholder, add the number instruction explicitly
+                  fullPromptText = `${selectedPrompt}\n\nGenerate exactly ${num} similar exercises based on this example:`;
+             }
+             fullPromptText += `\n\nBài tập mẫu:\n\n${sampleExerciseText}`;
+
+
+            const requestBody = {
+                contents: [{
+                    parts: [
+                        { text: fullPromptText } // Send the combined prompt and sample text
+                    ]
+                }]
+            };
+
+             console.log("Sending API request for Similar Exercises...", requestBody); // Log the request
+
+            statusDiv.textContent = `Đang gửi yêu cầu "${formatName}" đến API...`;
+
+            const response = await fetch(finalApiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                 const errorData = await response.json();
+                 const errorMessage = errorData.error?.message || JSON.stringify(errorData);
+                 throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorMessage}`);
+            }
+
+            const data = await response.json();
+            console.log('API Response for Similar Exercises:', data);
+
+            statusDiv.textContent = `Đã nhận kết quả "${formatName}" từ API. Đang xử lý quy tắc thay thế...`;
+
+            if (data && data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts) {
+                let extractedText = '';
+                data.candidates[0].content.parts.forEach(part => {
+                    if (part.text) { extractedText += part.text; }
+                });
+
+                 if (extractedText.trim() === '') {
+                     resultAreaTextarea.value = '';
+                     resultAreaTextarea.placeholder = `API đã xử lý yêu cầu "${formatName}" nhưng không trích xuất được kết quả (phản hồi rỗng).`;
+                     statusDiv.textContent = `Xử lý "${formatName}" hoàn tất (kết quả trống).`;
+                 } else {
+                      // Apply automatic replacement rules (config + user)
+                      const allReplacements = [...(appConfig && appConfig.replacements ? appConfig.replacements : []), ...userReplacements]; // Use config replacements only if config loaded successfully
+                      let processedText = applyReplacements(extractedText, allReplacements);
+
+                      // Apply addBackslashesToLoigiai if the output contains it (it should for exercise format)
+                       if (processedText.includes('\\loigiai{')) {
+                          processedText = addBackslashesToLoigiai(processedText);
+                       }
+
+                      resultAreaTextarea.value = processedText;
+                      resultAreaTextarea.placeholder = '';
+                      statusDiv.textContent = `Đã tạo xong bài tập tương tự. Kết quả hiển thị bên dưới.` + (userReplacements.length > 0 ? ` (Đã áp dụng ${userReplacements.length} quy tắc tự động của bạn)` : '');
+                 }
+
+            } else if (data && data.promptFeedback && data.promptFeedback.blockReason) {
+                 const blockReason = data.promptFeedback.blockReason;
+                 resultAreaTextarea.value = '';
+                 resultAreaTextarea.placeholder = `Yêu cầu "${formatName}" bị chặn bởi API. Lý do: ${blockReason}. Nội dung bài tập gốc có thể vi phạm chính sách.`;
+                 console.warn('API request was blocked:', data.promptFeedback);
+                 statusDiv.textContent = `Yêu cầu "${formatName}" bị chặn.`;
+
+            } else {
+                 resultAreaTextarea.value = '';
+                 resultAreaTextarea.placeholder = `API response cho định dạng "${formatName}" không chứa dữ liệu text hoặc có định dạng không mong muốn. Kiểm tra console log.`;
+                 console.error('API response structure unexpected:', data);
+                 statusDiv.textContent = `Lỗi nhận phản hồi cho "${formatName}".`;
+            }
+
+        } catch (err) {
+            console.error('Error processing similar exercises request:', err);
+            errorDiv.textContent = 'Có lỗi xảy ra khi tạo bài tập tương tự: ' + err.message;
+            resultAreaTextarea.value = ''; resultAreaTextarea.placeholder = 'Lỗi xử lý.';
+            statusDiv.textContent = 'Đã xảy ra lỗi trong quá trình tạo bài tập tương tự.';
+
+        } finally {
+            setProcessingState(false); // End processing, update button states
+            updateApiKeyStatus(); // Re-show API key status after processing
+        }
+    }
+
+    // --- Copy Result Function ---
+     async function copyResult() {
+        const textToCopy = resultAreaTextarea.value;
+        if (!textToCopy || isProcessing || copyResultBtn.disabled) return;
+
+        try {
+             await navigator.clipboard.writeText(textToCopy);
+             copyResultBtn.textContent = 'Đã copy!';
+             setTimeout(() => { copyResultBtn.textContent = 'Copy Kết Quả'; }, 2000);
+             console.log('Text copied to clipboard.');
+        } catch (err) {
+             console.error('Failed to copy text using Clipboard API: ', err);
+             try {
+                 resultAreaTextarea.select();
+                 resultAreaTextarea.setSelectionRange(0, 99999);
+                 document.execCommand('copy');
+                 copyResultBtn.textContent = 'Copied (fallback)!';
+                  setTimeout(() => { copyResultBtn.textContent = 'Copy Kết Quả'; }, 2000);
+                 console.log('Text copied using fallback execCommand.');
+             } catch (fallbackErr) {
+                  console.error('Fallback copy failed: ', fallbackErr);
+                   copyResultBtn.textContent = 'Copy Failed!';
+                   setTimeout(() => { copyResultBtn.textContent = 'Copy Kết Quả'; }, 2000);
+                   alert('Không thể sao chép văn bản tự động. Vui lòng sao chép thủ công.');
+             }
+        }
+    }
+
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+         // Set default and limits for the number input
+        numExercisesInput.value = defaultNumExercises;
+        numExercisesInput.min = minNumExercises;
+        numExercisesInput.max = maxExercises; // Use maxExercises constant
+
+        // Load user key and replacements first
+        loadUserApiKey(); // This will also call updateButtonState and updateApiKeyStatus
+        loadUserReplacements(); // Load user rules
+
+        // Load config (which might contain a fallback key and essential prompts/replacements)
+         // Update API Key status message during config loading
+         apiKeyStatusDiv.textContent = `Đang tải cấu hình từ ${configFileName}...`;
+         apiKeyStatusDiv.style.borderColor = '#007bff';
+         apiKeyStatusDiv.style.backgroundColor = '#e9f5ff';
+         apiKeyStatusDiv.style.color = '#007bff';
+         apiKeyStatusDiv.style.display = 'block';
+
+
+        loadConfig().then(config => {
+            appConfig = config; // appConfig might be { _loadError: true } or { prompts: {}, ... }
+            console.log('Cấu hình API từ file đã được tải (hoặc không tìm thấy/lỗi).', appConfig);
+
+            // Add event listeners *after* appConfig might be loaded,
+            // but before final button state update
+            generateBtn.addEventListener('click', generateSimilar);
+            copyResultBtn.addEventListener('click', copyResult);
+            saveApiKeyBtn.addEventListener('click', saveUserApiKey);
+            clearApiKeyBtn.addEventListener('click', clearUserApiKey);
+             userApiKeyInput.addEventListener('input', updateButtonState); // Re-check state as key input changes
+
+            // Listen for input/change events on main controls
+            sourceExerciseTextarea.addEventListener('input', updateButtonState);
+            numExercisesInput.addEventListener('input', updateButtonState);
+            numExercisesInput.addEventListener('change', updateButtonState); // Also listen to change for final value after unfocus
+            includeSolutionsCheckbox.addEventListener('change', updateButtonState);
+
+
+            // Final state update after everything is loaded and listeners are added
+            setProcessingState(false); // End initial loading state, enable/disable buttons correctly
+            updateApiKeyStatus(); // Ensure API key status is correct after config load
+
+        }).catch(err => {
+             // loadConfig now handles its own errors and returns null or object with _loadError
+             // This catch might be redundant if loadConfig handles everything,
+             // but keeping it as a safeguard.
+             console.error(`Lỗi hoàn tất khởi tạo sau khi tải cấu hình.`, err);
+             if (!errorDiv.textContent) { // Don't overwrite existing loadConfig error
+                errorDiv.textContent = `Lỗi khởi tạo chức năng tạo bài tập tương tự.`;
+             }
+             setProcessingState(false); // Ensure processing state is false
+             updateApiKeyStatus(); // Ensure API key status reflects the final state
+        });
+    });
+
+</script>
+</body>
+</html>
