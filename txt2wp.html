@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert TXT to WordPress Shortcode Quiz Do</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            margin: 0;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 0;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.1) 10px,
+                rgba(255, 255, 255, 0.1) 20px
+            );
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(-50px) translateY(-50px); }
+            100% { transform: translateX(50px) translateY(50px); }
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 0;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border-right: 1px solid #ddd;
+        }
+        .output-panel {
+            border-right: none;
+        }
+
+        .panel-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-align: center;
+            border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .input-panel .panel-header {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        }
+
+        .output-panel .panel-header {
+            background: linear-gradient(45deg, #26de81, #20bf6b);
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        textarea {
+            flex: 1;
+            border: none;
+            border-radius: 0;
+            padding: 20px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            background: white;
+            box-shadow: inset 0 0 10px rgba(79, 172, 254, 0.2);
+        }
+        
+        .convert-button {
+            background: linear-gradient(45deg, #fa8bff, #2bd2ff);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(250, 139, 255, 0.3);
+            margin: 15px auto;
+            display: block;
+        }
+
+        .convert-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(250, 139, 255, 0.4);
+        }
+
+        .convert-button:active {
+            transform: translateY(-1px);
+        }
+
+        .convert-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .convert-button:hover::before {
+            left: 100%;
+        }
+
+        .copy-button {
+            background: linear-gradient(45deg, #26de81, #20bf6b);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(38, 222, 129, 0.3);
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            z-index: 10;
+        }
+
+        .copy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(38, 222, 129, 0.4);
+        }
+
+        .status {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            width: auto;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        .status.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .status.success {
+            background: rgba(38, 222, 129, 0.9);
+            color: white;
+            border: 1px solid #20bf6b;
+        }
+
+        .status.error {
+            background: rgba(255, 107, 107, 0.9);
+            color: white;
+            border: 1px solid #ee5a24;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            .header h1 { font-size: 1.5rem; }
+            .panel { border-right: none; border-bottom: 1px solid #ddd; }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡Convert TXT to WordPress Shortcode Quiz Do</h1>
+            <p>Chuyển đổi file txt câu hỏi sang định dạng Shortcode cho WordPress</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="panel input-panel">
+                <div class="panel-header">
+                    📝 Nội dung TXT
+                </div>
+                <div class="panel-content">
+                    <textarea id="txtInput" placeholder="Dán nội dung file TXT vào đây...
+
+Ví dụ MCQ:
+Câu 1: Cho biểu thức A = x + 5, khi x > 3 thì A > 8.
+*A. Đáp án đúng
+B. Đáp án sai
+
+Ví dụ True/False:
+Câu 2: [Ghi chú] Cho các mệnh đề sau:
+*a) 1 < 2
+b) 1 > 2
+
+Ví dụ Short Answer:
+Câu 3: Tính giá trị của biểu thức 20% * 50.
+Lời giải
+Đáp án: 10
+Nội dung lời giải chi tiết."></textarea>
+                </div>
+            </div>
+            
+            <div class="panel output-panel">
+                <div class="panel-header" id="outputHeader">
+                    📋 Kết quả Shortcode
+                </div>
+                <div class="panel-content">
+                    <textarea id="output" placeholder="Kết quả Shortcode sẽ hiển thị ở đây..." readonly></textarea>
+                    <button class="copy-button" onclick="copyToClipboard()">📋 Copy Shortcode</button>
+                </div>
+            </div>
+        </div>
+        
+        <button class="convert-button" id="convertBtn" onclick="generateShortcode()">
+            <span id="convertBtnText">⚡Tạo Shortcode</span>
+        </button>
+        
+    </div>
+    <div id="status" class="status"></div>
+
+    <script>
+        // --- UI & Helper Functions ---
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type} show`;
+            setTimeout(() => { status.classList.remove('show'); }, 4000);
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            if (!output.value.trim()) {
+                showStatus('Không có nội dung để copy!', 'error');
+                return;
+            }
+            output.select();
+            document.execCommand('copy');
+            showStatus('Đã copy Shortcode vào clipboard!', 'success');
+        }
+        
+        /**
+         * Xử lý các ký tự đặc biệt để an toàn khi đưa vào thuộc tính của shortcode.
+         * @param {string} str - Chuỗi đầu vào.
+         * @returns {string} - Chuỗi đã được xử lý.
+         */
+        function sanitizeForShortcode(str) {
+            if (!str) return '';
+            const htmlTags = [];
+            const protectedStr = str.replace(/<img[^>]*\/?>/gi, (match) => {
+                htmlTags.push(match);
+                return `__HTML_TAG_${htmlTags.length - 1}__`;
+            });
+
+            
+             let sanitizedStr = protectedStr
+                .replace(/</g, '&lt;')   // Thay thế dấu <
+                .replace(/>/g, '&gt;')   // Thay thế dấu >
+                .replace(/"/g, "'")    // Thay thế dấu nháy kép bằng nháy đơn
+                .replace(/%/g, "&#37;")
+                .replace(/\[/g, '&#91;') // Thay thế dấu [
+                .replace(/\]/g, '&#93;'); // Thay thế dấu ]
+                if (htmlTags.length > 0) {
+                sanitizedStr = sanitizedStr.replace(/__HTML_TAG_(\d+)__/g, (match, index) => {
+                    return htmlTags[parseInt(index, 10)] || '';
+                });
+            }
+
+            return sanitizedStr;
+            }
+
+
+        // --- Core Conversion Logic ---
+
+        function generateShortcode() {
+            const txtInput = document.getElementById('txtInput').value.trim();
+            if (!txtInput) {
+                showStatus('Vui lòng nhập nội dung TXT!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('convertBtn');
+            const btnText = document.getElementById('convertBtnText');
+            const originalText = btnText.textContent;
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="loading"></span> Đang xử lý...';
+            
+            setTimeout(() => {
+                try {
+                    const data = parseTextToData(txtInput);
+                    const shortcode = buildShortcodeFromData(data);
+                    document.getElementById('output').value = shortcode;
+                    showStatus(`Tạo Shortcode thành công cho ${data.length} câu hỏi!`, 'success');
+                } catch (error) {
+                    showStatus('Lỗi: ' + error.message, 'error');
+                    document.getElementById('output').value = '';
+                } finally {
+                    btn.disabled = false;
+                    btnText.innerHTML = originalText;
+                }
+            }, 500);
+        }
+
+        // --- Parsing and Generation ---
+        
+        function parseTextToData(text) {
+            const questions = [];
+            const questionBlocks = text.split(/Câu\s+\d+\.?/);
+            
+            if (questionBlocks.length <= 1) {
+                 throw new Error('Không tìm thấy câu hỏi nào. Hãy chắc chắn bạn dùng định dạng "Câu 1:", "Câu 2.", ...');
+            }
+
+            for (let i = 1; i < questionBlocks.length; i++) {
+                const block = questionBlocks[i].trim().replace(/^[:\s]+/, '');
+                if (!block) continue;
+                
+                try {
+                    const questionNumber = i;
+                    let question;
+
+                    if (block.match(/^[*]?[a-z]\)/m)) {
+                        question = parseTrueFalseBlock(block, questionNumber);
+                    } else if (block.match(/Đáp án:/im)) {
+                        question = parseShortAnswerBlock(block, questionNumber);
+                    } else if (block.match(/^[*]?[A-D]\./m)) {
+                        question = parseMCQBlock(block, questionNumber);
+                    } else {
+                        console.warn(`Bỏ qua khối ${i} không xác định được định dạng.`);
+                        continue;
+                    }
+                    
+                    if (question) {
+                        questions.push(question);
+                    }
+                } catch (error) {
+                    throw new Error(`Lỗi xử lý câu ${i}: ${error.message}`);
+                }
+            }
+            
+            if (questions.length === 0) {
+                throw new Error('Không phân tích được câu hỏi nào. Vui lòng kiểm tra lại định dạng!');
+            }
+            
+            return questions;
+        }
+
+        function parseMCQBlock(block, questionNumber) {
+            const lines = block.split('\n').map(line => line.trim()).filter(Boolean);
+            let questionText = '';
+            let optionStartIndex = lines.findIndex(line => /^[*]?[A-D]\./.test(line));
+            
+            if (optionStartIndex === -1) throw new Error(`Không tìm thấy đáp án A, B, C, D.`);
+            questionText = lines.slice(0, optionStartIndex).join(' ');
+            
+            const options = [];
+            let correctIndex = -1;
+            let explanation = '';
+            let explanationStarted = false;
+
+            for(let i = optionStartIndex; i < lines.length; i++) {
+                const line = lines[i];
+                if (line.toLowerCase() === 'lời giải') {
+                    explanationStarted = true;
+                    continue;
+                }
+                
+                if (explanationStarted) {
+                    explanation += (explanation ? '\n' : '') + line;
+                } else {
+                    const optionMatch = line.match(/^([*]?)([A-D])\.(.+)$/);
+                    if (optionMatch) {
+                        const [, asterisk, , text] = optionMatch;
+                        options.push(text.trim());
+                        if (asterisk === '*') correctIndex = options.length - 1;
+                    }
+                }
+            }
+            
+            if (!questionText) throw new Error(`Không có nội dung câu hỏi.`);
+            if (options.length < 2) throw new Error(`Cần ít nhất 2 lựa chọn.`);
+            if (correctIndex === -1) throw new Error(`Không có đáp án đúng (dấu *).`);
+            
+            return { type: 'mcq', id: questionNumber, question: questionText, options, correct: correctIndex, explanation };
+        }
+
+        function parseTrueFalseBlock(block, questionNumber) {
+            const lines = block.split('\n').map(line => line.trim()).filter(Boolean);
+            let subQuestionStartIndex = lines.findIndex(line => /^[*]?[a-z]\)/.test(line));
+
+            if (subQuestionStartIndex === -1) throw new Error(`Không tìm thấy câu con a), b), ...`);
+            const questionText = lines.slice(0, subQuestionStartIndex).join(' ');
+
+            const subQuestions = [];
+            const correctAnswers = [];
+            let explanation = '';
+            let explanationStarted = false;
+
+            for(let i = subQuestionStartIndex; i < lines.length; i++) {
+                const line = lines[i];
+                if (line.toLowerCase() === 'lời giải') {
+                    explanationStarted = true;
+                    continue;
+                }
+                if (explanationStarted) {
+                    explanation += (explanation ? '\n' : '') + line;
+                } else {
+                    const subMatch = line.match(/^([*]?)([a-z])\)(.+)$/);
+                    if (subMatch) {
+                        const [ , asterisk, , text] = subMatch;
+                        subQuestions.push(text.trim());
+                        correctAnswers.push(asterisk === '*');
+                    }
+                }
+            }
+            
+            if (!questionText) throw new Error(`Không có nội dung câu hỏi.`);
+            if (subQuestions.length === 0) throw new Error(`Không có câu con.`);
+            return { type: 'tf', id: questionNumber, question: questionText, subQuestions, correct: correctAnswers, explanation };
+        }
+
+        function parseShortAnswerBlock(block, questionNumber) {
+            const lines = block.split('\n').map(line => line.trim()).filter(Boolean);
+            let explanationStartIndex = lines.findIndex(line => line.toLowerCase() === 'lời giải');
+
+            if (explanationStartIndex === -1) throw new Error(`Không tìm thấy "Lời giải".`);
+            const questionText = lines.slice(0, explanationStartIndex).join(' ');
+
+            const explanationLines = lines.slice(explanationStartIndex + 1);
+            let correctAnswer = '';
+            let explanation = '';
+            const answerLineIndex = explanationLines.findIndex(line => line.toLowerCase().startsWith('đáp án:'));
+            
+            if (answerLineIndex === -1) throw new Error(`Không tìm thấy "Đáp án:".`);
+            correctAnswer = explanationLines[answerLineIndex].substring(8).trim();
+            explanation = explanationLines.filter((_, index) => index !== answerLineIndex).join('\n');
+
+            if (!questionText) throw new Error(`Không có nội dung câu hỏi.`);
+            if (!correctAnswer) throw new Error(`Đáp án không được để trống.`);
+            return { type: 'sa', id: questionNumber, question: questionText, correct: correctAnswer, explanation };
+        }
+
+        function buildShortcodeFromData(data) {
+            const mcqQuestions = data.filter(q => q.type === 'mcq');
+            const tfQuestions = data.filter(q => q.type === 'tf');
+            const saQuestions = data.filter(q => q.type === 'sa');
+            
+            let shortcode = `[quiz_set type="exam, practice" time="15"]\n`;
+            
+            if (mcqQuestions.length > 0) {
+                shortcode += `[q_group title="Phần I. Trắc nghiệm một lựa chọn" single_choice_tron="n,n"]\n`;
+                mcqQuestions.forEach(q => {
+                    const correctLetter = String.fromCharCode(65 + q.correct);
+                    let optionsShortcode = '';
+                    q.options.forEach((opt, index) => {
+                        const letter = String.fromCharCode(97 + index);
+                        optionsShortcode += ` option_${letter}="${sanitizeForShortcode(opt)}"`;
+                    });
+                    shortcode += `    [quiz_question question="${sanitizeForShortcode(q.question)}"${optionsShortcode} correct="${correctLetter}" explanation="${sanitizeForShortcode(q.explanation)}"]\n`;
+                });
+                shortcode += `[/q_group]\n`;
+            }
+            
+            if (tfQuestions.length > 0) {
+                shortcode += `[q_group title="Phần II. Câu hỏi Đúng/Sai" true_false_tron="n,n"]\n`;
+                tfQuestions.forEach(q => {
+                    const correctLetters = q.correct.map((isCorrect, index) => isCorrect ? String.fromCharCode(65 + index) : null).filter(Boolean);
+                    let optionsShortcode = '';
+                    q.subQuestions.forEach((subQ, index) => {
+                        const letter = String.fromCharCode(97 + index);
+                        optionsShortcode += ` option_${letter}="${sanitizeForShortcode(subQ)}"`;
+                    });
+                    shortcode += `    [quiz_question_T_F question="${sanitizeForShortcode(q.question)}"${optionsShortcode} correct="${correctLetters.join(',')}" explanation="${sanitizeForShortcode(q.explanation)}"]\n`;
+                });
+                shortcode += `[/q_group]\n`;
+            }
+            
+            if (saQuestions.length > 0) {
+                shortcode += `[q_group title="Phần III. Trả lời ngắn"]\n`;
+                saQuestions.forEach(q => {
+                    shortcode += `    [quiz_question_TLN question="${sanitizeForShortcode(q.question)}" correct="${sanitizeForShortcode(q.correct)}" explanation="${sanitizeForShortcode(q.explanation)}"]\n`;
+                });
+                shortcode += `[/q_group]\n`;
+            }
+
+            shortcode += `[/quiz_set]`;
+            return shortcode;
+        }
+
+        // --- Event Listeners for Drag and Drop ---
+        const txtInput = document.getElementById('txtInput');
+        txtInput.addEventListener('dragover', (e) => { e.preventDefault(); txtInput.style.backgroundColor = '#f0f8ff'; });
+        txtInput.addEventListener('dragleave', (e) => { e.preventDefault(); txtInput.style.backgroundColor = '#f8f9fa'; });
+        txtInput.addEventListener('drop', (e) => {
+            e.preventDefault();
+            txtInput.style.backgroundColor = '#f8f9fa';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        txtInput.value = e.target.result;
+                        showStatus('File đã được tải lên!', 'success');
+                    };
+                    reader.readAsText(file);
+                } else {
+                    showStatus('Chỉ hỗ trợ file .txt!', 'error');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
