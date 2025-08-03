@@ -1,6 +1,6 @@
 
 {
-    "geminiApiKey": "AIzaSyAcRn-5LQgiBTmPMvH4I-rgrbZ262qJLVw",
+    "geminiApiKey": "",
     "apiUrl": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
     "prompts": {
       "textLatex": "Bạn là một công cụ OCR chuyên nghiệp. Hãy trích xuất toàn bộ văn bản và nội dung toán học từ hình ảnh này. Biểu diễn tất cả các công thức, biểu thức, phương trình, bất phương trình, hệ tọa độ (như Oxyz, Oxy, O), điểm (như A(1;0;1), B, C), vector (như vector AB, vec{u}), biến số (như x, y, z, m, n), và số (như 1, 10, 3.14) thuộc ngữ cảnh toán học bằng chế độ toán LaTeX rõ ràng ($...$ cho nội dòng, \\[ ... \\] hoặc $$ ... $$ cho hiển thị riêng dòng phù hợp). Đảm bảo khoảng cách đúng bên ngoài chế độ toán. Chỉ trả về văn bản và code LaTeX đã trích xuất, KHÔNG bao gồm bất kỳ lời mở đầu hoặc kết luận nào.",
