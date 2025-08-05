@@ -1,0 +1,432 @@
+
+            <!DOCTYPE html>
+            <html lang="vi">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Bài Tập Luyện Tập</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+                <script>
+                    window.MathJax = {
+                        tex: {
+                            inlineMath: [['$', '$'], ['\\(', '\\)']],
+                            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+                        },
+                        svg: {
+                            fontCache: 'global'
+                        }
+                    };
+                </script>
+                <script type="text/javascript" id="MathJax-script" async
+                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+                </script>
+                <script src="https://cdn.jsdelivr.net/npm/tikzjax@latest/tikzjax.js"></script>
+                <style>
+                    body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f0f4f8; }
+                    .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    .question-card { 
+                        background-color: white; 
+                        border-radius: 1rem; 
+                        padding: 1.5rem 2rem; 
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                        border-left: 5px solid transparent;
+                        transition: all 0.3s ease;
+                    }
+                    .correct-answer-reveal, .ai-explanation { 
+                        background-color: #e6f7ff; 
+                        color: #005f8d; 
+                        padding: 1rem; 
+                        border-radius: 0.75rem; 
+                        font-size: 0.9rem; 
+                        margin-top: 1rem; 
+                        border-left: 4px solid #1890ff;
+                    }
+                    .feedback-icon { width: 1.5rem; height: 1.5rem; }
+                    .option-label {
+                        transition: all 0.2s ease-in-out;
+                        border: 2px solid #e5e7eb;
+                    }
+                    .option-label:hover {
+                        border-color: #6366f1;
+                        background-color: #eef2ff;
+                    }
+                    .option-label.correct { 
+                        border-color: #10b981; 
+                        background-color: #ecfdf5; 
+                        color: #065f46;
+                    }
+                    .option-label.incorrect { 
+                        border-color: #ef4444; 
+                        background-color: #fef2f2;
+                        color: #991b1b;
+                    }
+                    .statement-item.correct { background-color: #ecfdf5; border-color: #10b981; }
+                    .statement-item.incorrect { background-color: #fef2f2; border-color: #ef4444; }
+                </style>
+            </head>
+            <body class="bg-slate-100 text-slate-800">
+                <div id="login-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all" style="animation: fadeIn 0.3s ease-out;">
+                        <h2 class="text-2xl font-bold mb-2 text-center text-slate-800">Thông Tin Học Sinh</h2>
+                        <p class="text-center text-slate-500 mb-6">Vui lòng nhập để bắt đầu làm bài.</p>
+                        <form id="student-info-form">
+                            <div class="mb-4">
+                                <label for="student-name" class="block text-sm font-medium text-slate-700 mb-1">Họ và tên</label>
+                                <input type="text" id="student-name" required class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2.5 px-3 focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div class="mb-4">
+                                <label for="student-class" class="block text-sm font-medium text-slate-700 mb-1">Lớp</label>
+                                <input type="text" id="student-class" required class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2.5 px-3 focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Giáo viên:</label>
+                                <p class="mt-1 text-slate-800 bg-slate-100 p-2.5 rounded-lg">Thầy Đồ</p>
+                            </div>
+                            <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105">Bắt đầu làm bài</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+                    <header class="text-center mb-10 bg-sky-100 border border-sky-200 p-6 rounded-xl shadow-md">
+                        <h1 class="text-4xl font-bold text-sky-900">Bài Tập Luyện Tập</h1>
+                        <p class="text-lg text-sky-800 mt-2">Hãy hoàn thành các câu hỏi dưới đây một cách tốt nhất!</p>
+                    </header>
+                    <main id="student-quiz-container" class="space-y-8 hidden">
+                        <!-- Questions will be rendered here by JS -->
+                    </main>
+                    <footer class="mt-10 text-center">
+                        <button id="submit-quiz-btn" class="bg-indigo-600 text-white py-3 px-12 rounded-full font-bold text-lg hover:bg-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl hidden transform hover:scale-105">Nộp Bài</button>
+                        <div id="result-container" class="mt-6 hidden"></div>
+                        <div id="post-submit-options" class="hidden mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <button id="retry-quiz-btn" class="w-full sm:w-auto bg-slate-600 text-white py-2.5 px-6 rounded-lg font-semibold hover:bg-slate-700 transition-transform transform hover:scale-105">Làm Lại Đề Này</button>
+                            <button id="generate-similar-btn" class="w-full sm:w-auto bg-purple-600 text-white py-2.5 px-6 rounded-lg font-semibold hover:bg-purple-700 flex items-center justify-center transition-transform transform hover:scale-105">
+                                <svg id="ai-icon" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                                <svg id="ai-loader" class="hidden animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <span id="ai-btn-text">Tạo Đề Tương Tự (AI)</span>
+                            </button>
+                        </div>
+                    </footer>
+                </div>
+
+                <script>
+                    let quizData = [{"type":"multiple-choice","question":"Cho hàm số $y = x^3 - 3x + 2$. Mệnh đề nào dưới đây đúng?","questionImage":null,"explanation":null,"options":["$y$ đồng biến trên khoảng $( - \\infty; -1)$","$y$ nghịch biến trên khoảng $(-1; 1)$","$y$ đồng biến trên khoảng $(-1; 1)$","$y$ nghịch biến trên khoảng $(1; +\\infty)$"],"optionsImage":[],"correctAnswerIndex":0},{"type":"multiple-choice","question":"Tìm $x$ để các biểu thức $P = \\ln(x - 2) - \\lg(10 - x)$ có nghĩa.","questionImage":null,"explanation":null,"options":["$x > 0$","$0 < x < 10$","$x < 10$","$x \\neq 0, x < 10$"],"optionsImage":[],"correctAnswerIndex":1},{"type":"multiple-choice","question":"Cho hàm số $y = f(x)$ có bảng xét dấu đạo hàm như sau:\n[BẢNG XÉT DẤU: Bảng xét dấu đạo hàm của hàm số y = f(x) CỤ THỂ]\nHàm số $y = f(x)$ đồng biến trên khoảng nào sau đây?","questionImage":null,"explanation":null,"options":["$(0; 1)$"," $(-1; 0)$","$( - \\infty; -1)$","$(1; +\\infty)$"],"optionsImage":[],"correctAnswerIndex":3},{"type":"multiple-choice","question":"Cho cấp số nhân $(u_n)$ có tổng $n$ số hạng đầu tiên là $S_n = 5^n - 1$ với $n \\in \\mathbb{N}^*$. Tìm số hạng đầu $u_1$ và công bội $q$ của cấp số nhân đó.","questionImage":null,"explanation":null,"options":["$u_1 = 5, q = 4$","$u_1 = 4, q = 6$","$u_1 = 4, q = 5$","$u_1 = 6, q = 5$"],"optionsImage":[],"correctAnswerIndex":0},{"type":"multiple-choice","question":"Cho hàm số $y = f(x)$ có đồ thị như hình vẽ:\n[HÌNH VẼ: Đồ thị của hàm số y = f(x) CỤ THỂ]\nHàm số đồng biến trên khoảng nào sau đây?","questionImage":null,"explanation":null,"options":["$(-1; 0)$","$(-4; -5)$"," $(-4; -1)$","$(2; 4)$"],"optionsImage":[],"correctAnswerIndex":2},{"type":"multiple-choice","question":"Cho hình hộp $ABCD.A'B'C'D'$, tổng vectơ $\\vec{AB} + \\vec{AC} + \\vec{AD} + \\vec{AA'} + \\vec{B'B}$ bằng với","questionImage":null,"explanation":null,"options":["$\\vec{0}$","$\\vec{A'C}$","$2\\vec{A'C}$","$\\vec{A'A}$"],"optionsImage":[],"correctAnswerIndex":1},{"type":"multiple-choice","question":"Tiếp tuyến của đồ thị hàm số $y = \\frac{x + 1}{2x - 3}$ tại điểm có hoành độ $x_0 = -1$ có hệ số góc bằng","questionImage":null,"explanation":null,"options":["5","$-5$","-5","5"],"optionsImage":[],"correctAnswerIndex":2},{"type":"multiple-choice","question":"Cho hàm số $f(x) = \\sin x + \\cos x$. Tính đạo hàm $f'(x)$ của hàm số trên.","questionImage":null,"explanation":null,"options":["$f'(x) = 2\\sin x \\cos x - 2\\cos x \\sin x$","$f'(x) = 2\\cos^2 x - 2\\sin^2 x$","$f'(x) = 2\\cos x \\sin x - 2\\cos x \\sin x$","$f'(x) = -2\\sin^2 x - 2\\sin x \\cos x$"],"optionsImage":[],"correctAnswerIndex":1},{"type":"true-false","question":"Cho hàm số $y = x^3 - 3x + 2$. Mệnh đề nào dưới đây đúng?","questionImage":null,"explanation":null,"statements":[{"statement":"Hàm số đồng biến trên khoảng $(1; +\ninfty)$","is_correct":true},{"statement":"Hàm số nghịch biến trên khoảng $(-\ninfty; -1)$","is_correct":false},{"statement":"Hàm số đồng biến trên khoảng $(-1; 1)$","is_correct":false},{"statement":"Hàm số nghịch biến trên khoảng $(-1; 1)$","is_correct":false}]},{"type":"true-false","question":"Tìm $x$ để biểu thức $P(x) = \\ln(x - 2) + \\lg(10 - x)$ có nghĩa.","questionImage":null,"explanation":null,"statements":[{"statement":"$x > 0$","is_correct":false},{"statement":"$2 < x < 10$","is_correct":true},{"statement":"$x < 10$","is_correct":false},{"statement":"$x < 2 \\text{ hoặc } x > 10$","is_correct":false}]},{"type":"short-answer","question":"Một tấm cầu dốc kê bậc thềm được làm bằng kim loại như hình vẽ. Biết chiều cao tối đa của cầu dốc là 0,3 m và bề mặt cầu là hình vuông có cạnh bằng 1 m. Hãy tính góc tạo bởi đường chéo bề mặt cầu dốc với mặt phẳng sàn nhà theo đơn vị độ (làm tròn kết quả đến hàng phần chục). [HÌNH VẼ: Hình vẽ mô tả cầu dốc với các kích thước đã cho]","questionImage":null,"explanation":null,"answer":"12.2"},{"type":"short-answer","question":"Một buổi chiều nọ, bên bếp lửa hồng trong gian nhà ấm áp, người ta nhìn thấy ba mẹ con cùng ngồi ăn đậu phộng rang. Tấm ăn trước, cô bốc 1 hạt đậu và bỏ vào miệng; Cám là người bốc đậu tiếp theo, cô bỏ hai hạt đậu vào miệng; dì ghẻ là người bốc đậu tiếp theo liền bỏ 3 hạt vào miệng. Trở lại lượt của Tấm, cô lấy 4 hạt đậu, rồi Cám lấy 5 hạt đậu, dì ghẻ lấy 6 hạt đậu... Bữa ăn hào hứng như thế cho đến lượt cuối cùng thì số hạt đậu không đủ theo quy luật trò chơi, người nào đến lượt cuối sẽ lấy hết số hạt đậu còn lại. Sau bữa ăn ấm áp ấy, Tấm nhận ra mình đã cho vào bụng khoảng 317 hạt đậu. Hỏi tổng số đậu mà ba mẹ con đã ăn trong tối đó là bao nhiêu?","questionImage":null,"explanation":null,"answer":"933"}];
+                    const apiKey = "AIzaSyD7uNWJw93-tWTbzuqR_Yi8Ux-da_SLQY4"; 
+                    const googleScriptUrl = "https://script.google.com/macros/s/AKfycbwpc1yTQYKFzIimTNxwd81mnXXtztXB5xCCnveoMvUrGHW_oJQgrApA16ABIpK3Trps/exec";
+                    const knowledgeBase = "M Ã Đ Ề   672   1          Trư ờ ng TH - THCS - THPT Lê Thánh Tông   Đ Ề   KH Ả O SÁT CH Ấ T LƯ Ợ NG KHÓA HÈ   202 5 - 202 6    Môn: Toán; Ngày  13 / 0 7 /202 5    (Đ ề   g ồ m 0 4   trang)   Th ờ i gian làm bài:  9 0 phút, không k ể   th ờ i gian phát đ ề                 H ọ   tên h ọ c sinh:......................................................;  S ố   báo danh :..................       PH Ầ N I. Câu tr ắ c nghi ệ m nhi ề u phương án l ự a ch ọ n (t ừ   câu 1 đ ế n câu 12).     M ỗ i câu thí sinh ch ỉ   ch ọ n m ộ t phương án.    Câu 1.     Cho hàm số  3   3   2    y   x   x =   −   +   . Mệnh đề nào dưới đây đúng?    A.   Hàm s ố   ngh ị ch bi ế n trên kho ả ng  (   ) ;   1    − − .   B.   Hàm s ố   ngh ị ch bi ế n trên kho ả ng  (   ) 1;   +   .    C.   Hàm s ố   đ ồ ng bi ế n trên kho ả ng  (   ) 1; 1 − .   D.   Hàm s ố   ngh ị ch bi ế n trên kho ả ng  (   ) 1; 1 − .    Câu 2.     Tìm  x   để các biểu thức  (   )   (   ) ln   2   lg   10 P   x   x =   −   −     có nghĩa  (   )   (   ) ln   2   lg   10 x   x    −   −      .    A.  0 x    .   B .  0   10 x        .   C .  10 x    .   D .  0 ,   10 x   x           .    Câu 3.     Cho hàm số (   ) y   f   x =   có bảng xét dấu đạo hàm như sau:       Hàm s ố (   ) f   x      đ ồ ng bi ế n trên kho ả ng nào sau đây?    A. (   ) 0 ; 1   .   B. (   ) 1; 0 −   .   C. (   ) ;   1    − −   .   D. (   ) 1; −   +   .    Câu 4.     Cho c ấ p s ố   nhân  (   ) n u   có t ổ ng  n   s ố   h ạ ng đ ầ u tiên là  5   1    =   −    n  n S   v ớ i  *  n . Tìm s ố   h ạ ng đ ầ u  1 u   và   công b ộ i  q   c ủ a c ấ p s ố   nhân đó .    A.  1   5 = u ,  4 = q .   B.  1   4 = u ,  6 = q .   C.  1   4 = u ,  5 = q .   D.  1   6 = u ,  5 = q .    Câu 5.     Cho hàm số  (   ) y   f   x =     có đồ thị được cho như hình sau, hàm số đồng biến trên khoảng nào sau đây?    A.  (   ) 1; 0 − .      B.  (   ) 5;   4 −   −    .      C.  (   ) 4 ;   1 −   −    .      D.  (   ) 2 ; 4 .             Câu 6.     Cho  hình  hộp  . ABCD A B C D       ,  tổng  vectơ  AB   AC   AD   AA   BB        +   +   +   +    bằng với    A.  0 .   B.  AC    .   C.  2   AC    .   D.  A C         .    Câu 7.     Tiếp tuyến của đồ thị hàm số  1  2   3     x y   x  + =   −     tại điểm có hoành độ  0   1 x   = −    có hệ số góc bằng  M Ã Đ Ề   672   2       A.  5 .   B .  1  5 − .   C .  5 − .   D .  1  5 .    Câu 8.     Cho hàm số (   )   sin   cos   . sin   cos  x   x    f   x    x   x     + =   −     Tính đạo hàm  (   ) f   x         của hàm số trên.    A.  (   )   (   ) 2  4sin   cos  sin   cos  x   x    f   x    x   x       − =   − .   B.  (   )   (   ) 2  2  sin   cos f   x    x   x     −    =   − .    C.  (   )   (   ) 2  2cos  sin   cos  x f   x    x   x       =   − .   D.  (   )   (   ) 2  sin2  sin   cos  x f   x    x   x       =   − .    Câu 9.   Có  3   tem thư khác nhau và  6     bì thư khác nhau. Người ta muốn chọn từ đó ra  3     tem thư,  3     bì thư và dán  3      tem thư vào  3     bì thư đã chọn. Hỏi có bao nhiêu cách làm như vậy?    A.  200 .   B.  20 .   C.  300 .   D.  120 .    Câu 10.   Cho  hình  chóp  . S   ABC     có đáy là tam giác đều     với   2 AB   a = ,  SA     vuông góc với mặt phẳng đáy,  3 SA   a =  . Góc giữa hai mặt phẳng  (   ) SBC     và  (   ) ABC   là    A. 0 60   .   B. 0 30   .   C. 0 120   .   D. 0 45   .    Câu 11.   Cho hai bi ế n c ố   A   và  B   v ớ i  (   )   (   ) 0, 3;   0, 4 P   A   P   B =   =      và  (   )   0, 2. P   AB   =   Xác su ấ t đ ể   A   ho ặ c  B   x ả y ra   b ằ ng    A.  0, 3.     B.  0, 4.   C.  0, 6.   D.  0, 5.    Câu 12.   Cho  hình chóp đều  S.ABCD   có đáy là hình vuông, chiều cao hình chóp bằng 2025, khi đó độ lớn vectơ   tổng  SA   SB   SC   SD +   +   +     b ằ ng     A.  2 500 .   B.  8100 .   C.  6 075 .   D.  4 050 .       PH Ầ N II.    Câu tr ắ c nghi ệ m  đúng sai   (t ừ   câu 1 đ ế n câu  4 ).    Trong m ỗ i ý  a) ,   b) ,   c) ,   d)   ở   m ỗ i câu, thí sinh ch ọ n đúng ho ặ c sai.    Câu 13.   Cho hàm số  2   1     1  x y   x  + =   −   .    a)   T ậ p xác đ ị nh c ủ a hàm s ố   là      \\   1    D   = .    b)   H ệ   s ố   góc c ủ a ti ế p tuy ế n v ớ i đ ồ   th ị   hàm s ố   t ạ i giao đi ể m v ớ i tr ụ c hoành là  3 k   = −  .    c)   Hàm s ố   luôn đ ồ ng bi ế n trên t ừ ng kho ả ng xác đ ị nh c ủ a nó.    d)   Có 8 đư ờ ng th ẳ ng c ắ t đ ồ   th ị   hàm s ố   t ạ i hai đi ể m  phân bi ệ t  có t ọ a đ ộ   nguyên.    Hư ớ ng d ẫ n gi ả i    a) M ệ nh đ ề   đúng.    T ậ p xác đ ị nh hàm s ố   là      \\   1    D   = .    b) M ệ nh đ ề   sai.    Giao đi ể m đ ồ   th ị   v ớ i tr ụ c hoành là  1   ; 0  2 A        −               . Đ ạ o hàm:  2  3  (   1) y   x  − =   −  .    H ệ   s ố   góc ti ế p tuy ế n đ ồ   th ị   hàm s ố   t ạ i  A   là  2  1   3   4  2   3    3  2  k   y    −        =   −   =   = −                           −         .    c) M ệ nh đ ề   sai.  M Ã Đ Ề   672   3       Ta có  2  3  (   1) y   x  − =   −  . Vì  0 y       v ớ i m ọ i  x   D     , hàm s ố   luôn ngh ị ch bi ế n trên t ừ ng kho ả ng xác đ ị nh.    d) M ệ nh đ ề   sai.    Hàm  s ố   có  d ạ ng  3 2   1 y   x =   +    − .  Các  đi ể m  có  t ọ a  đ ộ   nguyên  thu ộ c  đ ồ   th ị   hàm  s ố   ứ ng  v ớ i  1 hay   3 x   x    =    =   .    C ó 4 điểm   thỏa mãn là:  (   ) 2 ; 5   ;   (   ) 0 ;   1 − ;  (   ) 4 ; 3 ;   (   ) 2 ; 1 − .      Số đường thẳng đi qua hai trong 4 điểm này là:   2  4  4   3      6 2 C    =   =    .    Câu 14.   S ố   gi ờ   có ánh sáng m ặ t tr ờ i c ủ a thành ph ố A     ở   vĩ đ ộ   o 4 0   B ắ c trong ngày th ứ   t   c ủ a m ộ t năm không   nhu ậ n đư ợ c cho b ở i hàm s ố :  (   )   (   ) 3sin   80   12 182         =   −   +               d   t   t    v ớ i   t   và  0   365        t .    a)   Ngày th ứ   80 trong năm thì thành ph ố   có đúng 10 gi ờ   nh ậ n ánh sáng m ặ t   tr ờ i.    b)   Đ ạ o hàm c ủ a hàm s ố   đã cho là   (   )   3   cos   (   80) 182   182            =   −                  t d   t             .    c)   Nghi ệ m c ủ a phương trình  (   )   0    = d   t     trên đo ạ n      1; 171     là   171 = t   .    d)   Ngày th ứ   160 có s ố   gi ờ   ánh sáng l ớ n nh ấ t trong năm.    Hư ớ ng d ẫ n gi ả i    a) Mệnh đề sai.    Với  80   (   )   3sin 0   12   12 =      =   +   = t   d   t   .     V ậ y ngày th ứ   80 thì thành ph ố   có 12 gi ờ   nh ậ n ánh sáng m ặ t tr ờ i.    b) Mệnh đề đúng.    Ta có:  (   )   3   cos   (   80) 182   182            =   −                  t d   t           .    c) Mệnh đề đúng.   (   )   3 0   cos   (   80)   0   (   80)   , 182   182   182   2 d   t   t t   k   k                    =      −   =      −   =   +    80   91   182   ,   171   182   , t   k   k   t   k   k    −   =   +         =   +     .    V ớ i      1; 171  t   thì phương trình  (   )   0    = d   t     có nghiệm duy nhất thỏa mãn là  171 = t   .    d) Mệnh đề sai.    Ta có:  (   )   (   ) 3sin   80   12   3   1   12   15 182         =   −   +       +   =               d   t   t  .    Dấu  đẳng  thức  xảy  ra  khi  và  chỉ  khi  (   )   (   ) sin   80   1   80   2   , 182   182   2         −   =      −   =   +                  t   t   k   k           80   91   364   ,   171   364   ,    −   =   +         =   +    t   k   k   t   k   k  .    Vì  0   171        t   nên phương trình  171   364   , =   +    t   k   k     chỉ cho một nghiệm  171 = t   .    Vậy ngày có số giờ ánh sáng lớn nhất trong năm   là ngày th ứ   171 trong năm.  M Ã Đ Ề   672   4       Câu 15.   Một khối gỗ có dạng  hình lăng trụ đứng  . ABC MNP   ,  đáy   của nó   là tam giác   cân  có  2   ;   1 AB   BC   dm   AC   dm =   =   = .  Cạnh bên khối gỗ là  4 AM   dm =   .    a)   Tổng diện tích ba mặt bên khối gỗ bằng  2 20   dm   .    b )   Thể tích khối gỗ bằng  3 15  2   dm   .    c )   Khoảng cách hai đoạn  AM   với  BC   bằng  15  4   dm   .    d)   Bác  thợ  mộc  cắt  khối  gỗ  bằng  một  lát  cắt  có  dạng    IJK  với  ,   ,    I   AM   J   BN   K   CP             sao  cho  tam  giác  IJK     đều . Giá trị cosin của góc tạo bởi hai mặt phẳng  (   )    IJ K    và  (   )    ABC   bằng  5  5   .    Hư ớ ng d ẫ n gi ả i    a)  Mệnh đề đúng.    Tổng diện tích ba mặt bên khối gỗ là  2 2   4   2   4   1   4   20 S   dm =      +      +    =   .    b )  Mệnh đề sai.    Nửa chu vi tam giác  ABC   là  2   1   2   2, 5 2   2     AB   AC   BC p   dm +   +   + + =   =   = .    Diện tích đáy khối gỗ là  (   ) (   ) (   )   2 15 2, 5   2, 5   2   2, 5   2   2, 5   1   4 ABC S   dm    =   −   −   −   =   .    Thể tích khối gỗ là  3 15 4   15 4 V   dm =      =   .    c)  Mệnh đề đúng.    Kẻ    đường    cao    AH   của    tam    giác    ABC ,  ta  có:  15 2 2 1   15 4  2   2   4  ABC  ABC  S S   AH   BC   AH   dm BC    =         =   =   =  .    Khoảng cách cần tính là   (   )   15 ,   4 d   AM   BC   AH   dm =   =      .    d) Mệnh đề đúng.    Qua  J , ta kẻ mặt phẳng ( JEF)   song song với hai mặt đáy lăng trụ.    Ta có:  IEJ   K FJ    =    (do  0 ,   2,   90 IJ   JK   EJ   J F   IEJ   K FJ =   =   =   =   = .    Suy ra  IE   K F = , mà  // IE   K F   nên  IEKF   là hình bình hành.    Gọi  O   là tâm hình bình hành  IEKF   thì  O   là trung điểm của mỗi đường chéo   IK, EF . Tam giác  JEF   cân tại  J   có  IO   là đường trung tuyến nên  JO   EF ⊥   ,   tương tự  JO   IK ⊥   .    Gọi 2 x   (   ) 0 x      là cạnh tam giác đều  IJK   thì  3 JO   x = .    Ta có:  2   2   2 1   ;   4   4; 2   2   2  EF   AC OE   IE   I J   J E   x   OI   x =   =   =   =   −   =   −   = .    Xét tam giác vuông  OIE   thì:  (   ) 2   2   2   2   2 1   4   4    4 OI   OE   I E   x   x =   +      =   +   −    2   15   5 3   4   2    x   x    =      = .    Do đó:  5   3     4 I JK S    =   ; ta lại có:  15  4 ABC S      =   . Suy ra:  15   4   5 cos   . 4   5    5   3     ABC  I J K  S  S        =   =   = .  M Ã Đ Ề   672   5       Câu 16.   Có hai gia đình hẹn nhau đi uống cà phê, mỗi gia đình có hai vợ chồng và hai đứa con (một gái, một   trai). Khi vào quán thì nhân viên bố trí họ vào một cái bàn với hai hàng ghế đối diện nhau, mỗi hàng   ghế có 4 chỗ dành cho một gia đình.   Sau khi vào hàng ghế dành cho gia đình mình thì mỗi thành viên   ngồi vào ghế một cách ngẫu nhiên.    a)   Xác  su ấ t đ ể   hai ngư ờ i ch ồ ng ng ồ i đ ố i di ệ n nhau b ằ ng  1  3 .    b)   X ác su ấ t đ ể   hai ngư ờ i ch ồ ng ng ồ i đ ố i di ệ n nhau, hai ngư ờ i v ợ   ng ồ i đ ố i di ệ n nhau, hai đ ứ a con gái   ng ồ i đ ố i di ệ n nhau, hai đ ứ a con trai ng ồ i đ ố i di ệ n nhau b ằ ng  1  24 .    c )   Xác su ấ t đ ể   hai ngư ờ i ch ồ ng ng ồ i đ ố i di ệ n nhau, hai ngư ờ i v ợ   không ng ồ i đ ố i di ệ n nhau b ằ ng  1  6 .    d)   Xác su ấ t đ ể   h ai ngư ờ i ch ồ ng ng ồ i đ ố i di ệ n nhau   ho ặ c hai ngư ờ i v ợ   ng ồ i đ ố i di ệ n nhau b ằ ng  5  8 .    Hư ớ ng d ẫ n gi ả i    a) Mệnh đề  sai .    Xác su ấ t c ầ n tính là  4   1   3!3!2   1  4!4!2   4     = .    b) M ệ nh đ ề   đúng.    Xác su ấ t c ầ n tính là  4   1   3   1   2   1 1   2   1  4!4!2   24             = .    c) M ệ nh đ ề   đúng.    Xác su ấ t c ầ n tính là  4   1   3   2   2!2!2   1  4!4!2   6          = .    d) M ệ nh đ ề   sai.    Xác su ấ t c ầ n tính là  2   (4   1   3!3!2)   4   1   3   1   2!2!2   5  4!4!2   12         −         = .       PH Ầ N III. Câu tr ắ c nghi ệ m tr ả   l ờ i ng ắ n (t ừ   câu 1 đ ế n câu 6).    Câu 17.   Cho hàm số  3   2    3   y   x   x =   +        có đồ thị ( C ) .  T iếp tuyến của  (   )    C     tại điểm  (1; 4) M     cắt  Ox ,  Oy   lần lượt tại  A    và  B . Tìm diện tích tam giác  OAB   và làm tròn đến hàng phần trăm.    Đáp số:   1,39    Hư ớ ng d ẫ n gi ả i    Ta có:  2 3   6       =   +    y   x   x ; h ệ   s ố   góc ti ế p tuy ế n  (1)   9  =   =    k   y    .    Phương trình ti ế p tuy ế n t ạ i  (1; 4) M   là:  0   0    (   )   9(   1)   4   9   5 =   −   +      =   −   +      =   − y   k   x   x   y   y   x   y   x .    V ậ y   phương trình ti ế p tuy ế n c ủ a ( C ) t ạ i  M là  d :  9   5    =   −    y   x    .     Đư ờ ng th ẳ ng  d   c ắ t  Ox  t ạ i đi ể m  5   ; 0  9 A                          và c ắ t  Oy   t ạ i đi ể m  (   ) 0;   5 B   − .    Di ệ n tích tam giác  OAB   là  1   1   5   25 5   1, 39 2   2   9   18 OAB S   OA   OB =         =         =    .  M Ã Đ Ề   672   6       Câu 18.   Một tấm cầu dốc kê bậc thềm được làm bằng kim loại như hình vẽ. Biết   chiều cao tối đa của cầu dốc là 0,3  m   và bề mặt cầu là hình vuông có   cạnh bằng 1  m . Hãy tính góc tạo bởi đường chéo bề mặt cầu dốc với mặt   phẳng sàn nhà theo đơn vị độ (làm tròn kết quả đến hàng phần chục).    Đáp số:   12,2    Hư ớ ng d ẫ n gi ả i    Xét mô hình c ầ u d ố c v ớ i các kí   hi ệ u như hình v ẽ .    Vì  AF   là  hình  chi ế u  c ủ a   BF   trên  ( ACFD )  nên  (   ) (   )   (   ) ,   ,    BF   ACFD   BF   AF   BFA =   =     .    Hình vuông  BCFE   có c ạ nh b ằ ng 1  m   nên có đư ờ ng chéo  2 = BF   m  ;  0, 3 = AB   m .    Tam giác  ABF   vuông t ạ i  A   có:  3   2    sin   12, 2 20 =   =       AB BFA   BFA BF  . V ậ y  (   ) (   ) ,   12, 2 =       BF   ACFD   BFA .    Câu 19.   Một buổi chiều nọ, bên bếp lửa hồng trong gian nhà ấm áp, người ta nhìn thấy ba mẹ con cùng ngồi ăn   đậu phộng rang. Tấm ăn trước, cô bốc 1 hạt đậu và bỏ vào miệng; Cám là người bốc đậu tiếp theo, cô   bỏ hai hạt đậu vào miệng; dì ghẻ là người bốc đậu tiếp theo liền bỏ 3 hạt vào   miệng. Trở lại lượt của Tấm, cô lấy 4 hạt đậu, rồi Cám lấy 5 hạt đậu, dì ghẻ lấy 6   hạt đậu... Bữa ăn hào hứng như thế cho đến lượt cuối cùng thì số hạt đậu không   đủ theo quy luật   trò chơi, người nào đến lượt cuối sẽ lấy hết số hạt đậu  còn lại.    Sau b ữ a ăn  ấ m áp  ấ y, T ấ m nh ậ n ra mình đã cho vào b ụ ng kho ả ng 317 h ạ t đ ậ u.    H ỏ i t ổ ng s ố   đ ậ u mà ba m ẹ   con đã ăn trong t ố i đó là bao nhiêu?    Đáp s ố :   933    Hư ớ ng d ẫ n gi ả i    S ố   đ ậ u mà T ấ m đã ăn là  1   4   7   10   ... +   +   +   +      S ố   đ ậ u mà T ấ m đã ăn t ừ ng lư ợ t theo quy lu ậ t c ấ p s ố   c ộ ng v ớ i  1   1,   3 =   =    u   d    .    Sau  n   lư ợ t, t ổ ng s ố   đ ậ u mà T ấ m đã ăn là  (   )   (   ) 1 2   1   2   1   3   (3   1)  2   2   2            +   −   +   −      −           =   =   = n  n   u   n   d   n   n   n   n    S   .    Xét  2 (3   1) 317   317   3   634   0   14, 7 2  − =      =      −   −   =       n  n   n    S   n   n   n   (không th ỏ a mãn).    Do đó T ấ m là ngư ờ i ăn đ ậ u cu ố i cùng. Sau 14 lư ợ t cô ăn đư ợ c  14  14(3   14   1)   287 2     −    =   =    S ; lư ợ t cu ố i cô   ăn thêm  317   287   30 −   =        (h ạ t).    S ố   đ ậ u mà Cám đã ăn là t ổ ng c ấ p s ố   c ộ ng có s ố   h ạ ng đ ầ u b ằ ng 2, công sai b ằ ng 3.    S ố   đ ậ u mà di gh ẻ   đã ăn là t ổ ng c ấ p s ố   c ộ ng có s ố   h ạ ng đ ầ u b ằ ng 3, công sai b ằ ng 3.    T ổ ng s ố   đ ậ u mà c ả   ba m ẹ   con đã ăn đư ợ c là  (   )   (   ) 14   2   2   13   3   14   2   3   13   3 317   933 2   2        +       +    +   +   =    .  M Ã Đ Ề   672   7       Câu 20.   Một chiếc bánh kem mừng sinh nhật có dạng hình chóp cụt đều  . ABC A B C        với   cạnh đáy lớn bằng  4   dm   , cạnh đáy nhỏ bằng  2   dm       và chiều cao của nó bằng  1, 5   dm  . Tìm thể tích của chiếc bánh kem đó theo đơn vị  3 dm   (làm tròn đến hàng   phần trăm, bỏ qua những thứ trang trí quanh chiếc bánh).     Đáp số:   6,06    Hư ớ ng d ẫ n gi ả i    Xét hình chóp cụt đều  . ABC A B C        như hình vẽ; trong đó chiều cao  1, 5 =   =    h   IO   dm  .    Diện tích hai đáy hình chóp cụt đều:  2  2  1  4   3    4   3    4  =   =   = ABC S   S   dm   ;  2  2  2  2   3    3 4     =   =   = A B C  S   S   dm  .    Thể tích khối chóp cụt đều:  (   ) 1   1   2   2  1  3 V   h   S   S S   S =   +   + (   )   3 1   7   3 1, 5   4   3   4   3   3   3   6, 06 3   2    =      +      +   =      dm  .       Câu 21.   Một kỹ sư thiết kế đường trượt nước tại công viên theo đồ thị   hàm số bậc ba  3   2    3   5    = −   +   + y   x   x   , đơn vị trên mỗi trục là mét.   Theo tính toán của kỹ sư, một người chơi có khối lượng 55 kg   khi trượt từ vị trí ban đầu đến vị trí  A   có cao độ 8,375 mét so với   mặt đất (trục  Ox ) thì họ sẽ bị bắn lên không theo đường cong   parabol trước khi tiếp nước ở vị trí  (   ) 8; 4 B   . Biết rằng parabol   và đồ thị hàm bậc ba có chung tiếp tuyến tại vị trí  A , tính chiều   cao lớn nhất so với mặt mặt đất mà một người chơi có khối   lượng 55 kg đạt được theo tính toán của kỹ sư ấy, đơn vị mét,   làm tròn đến hàng phần chục.    Đáp số:   11,2    Hư ớ ng d ẫ n gi ả i    Tìm  A x , ta có:  3   2   3   2 8, 375   3   5   3   3, 375   0   1, 5 = −   +   +      −   +   =      = A x   x   x   x   x   hay  (   ) 1, 5; 8, 375 A .    Tìm độ dốc  k     tại  A   :  (   )   (   ) 2   2    3   6   1, 5   3(1, 5)   6   1, 5   2, 25 = −   +      =   =    −   +       = y   x   x   k   y .    Phương trình tiếp tuyến tại  A   :  (   ) 8, 375   2, 25   1.5   2, 25   5 −   =   −      =   + y   x   y   x .    Đặt parabol  (   )   2 =   +   + f   x   ax   bx   c   . Theo giảt thiết ta có   (   )  (   )  (   )  (   ) 2  76  169  2433 (  1, 5   2, 25   2   1, 5   2, 25  1   1, 5)   1, 5   8, 375   676 6  , 5   8, 375  8  1  4   4   8   4   674  69        =      +   =            =                     =          = −   +   +   =   =  +   +   =  =   a  a   b   c  a  f   a   b     f  f  b  b   c     c  .   M Ã Đ Ề   672   8       Người chơi bị bắn lên không theo đường parabol:  2 76   2 433   674  169   676   169 = −   +   + y   x   x   .    Đỉnh parabol có hoành độ  2 433  2   608  − =   =    I  b x   a   ; chiều cao tương ứng là  (   ) 2 433   11, 2 608         =                     I y   f   m   .    Vậy chiều cao lớn nhất mà người chơi đạt được là 11,2 mét.    Câu 22.   Bạn Sơn muốn bố trí một hệ thống 12 bóng đèn màu trên chiếc cửa sổ phòng học của mình. Theo tư   vấn của một người bạn, Sơn quyết định chọn 3 màu khác nhau cho số bóng đèn này với điều kiện 2   bóng đèn kề nhau (được nối với nhau bằng 1 đoạn dây như hình) thì  không có cùng 1 màu. Hỏi Sơn có   bao nhiêu cách chọn màu cho 12 bóng đèn như thế?         Đáp số:   4 608    Hư ớ ng d ẫ n gi ả i    Trước tiên ta xét 4 bóng đèn được đánh số từ 1 đến 4 như hình vẽ.    Trường hợp 1:   Bóng số 1 và 3 cùng màu.    •   Chọn màu cho bóng số 1 và 3: có 3 cách.    •   Chọn màu cho bóng số 2: có 2 cách.    •   Chọn màu cho bóng số 4: có 2 cách.    •   Chọn màu cho 8 bóng còn lại: mỗi bóng có 2 cách.    Số cách chọn trong trường hợp này là  8 3   2   2   2   3072          =     (cách).      Trường hợp 2:   Bóng số 1 và 3 khác màu.    •   Chọn màu cho bóng số 1: có 3 cách.    •   Chọn màu cho bóng số 3: có 2 cách.    •   Chọn màu cho bóng số 2: có 1 cách.    •   Chọn màu cho bóng số 4: có 1 cách.    •   Chọn màu cho 8 bóng còn lại: mỗi bóng có 2 cách.    Số cách chọn trong trường hợp này là  8 3   2   1 1   2   1536         =     (cách).    Số cách chọn màu của bạn Sơn là  3 072   1536   4 608 +   =        (cách).          _________________H Ế T_________________        ";
+                    let studentInfo = {};
+                    let lastScorePercentage = -1;
+                    let isSubmitted = false;
+
+                    const studentQuizContainer = document.getElementById('student-quiz-container');
+                    const submitBtn = document.getElementById('submit-quiz-btn');
+                    const resultContainer = document.getElementById('result-container');
+                    const postSubmitOptions = document.getElementById('post-submit-options');
+                    const retryBtn = document.getElementById('retry-quiz-btn');
+                    const generateSimilarBtn = document.getElementById('generate-similar-btn');
+                    const loginModal = document.getElementById('login-modal');
+                    const studentInfoForm = document.getElementById('student-info-form');
+
+                    // --- Gemini API Caller ---
+                    async function callGeminiAPI(payload, apiKey) {
+                        if (!apiKey) {
+                            alert("API Key không hợp lệ. Không thể thực hiện yêu cầu.");
+                            return null;
+                        }
+                        const GENERATE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+                        
+                        try {
+                            const response = await fetch(GENERATE_API_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+
+                            if (!response.ok) {
+                                const errorBody = await response.json();
+                                throw new Error(`API Error: ${errorBody.error?.message || response.status}`);
+                            }
+                            
+                            const result = await response.json();
+
+                            if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts) {
+                                return result.candidates[0].content.parts[0].text;
+                            } else {
+                                 if (result.promptFeedback && result.promptFeedback.blockReason) {
+                                     throw new Error(`API call blocked: ${result.promptFeedback.blockReason}`);
+                                 }
+                                return "Không nhận được phản hồi hợp lệ từ AI.";
+                            }
+                        } catch (error) {
+                            console.error("Lỗi khi gọi Gemini API:", error);
+                            return `Đã xảy ra lỗi: ${error.message}`;
+                        }
+                    }
+
+                    function renderStudentQuiz() {
+                        let html = '';
+                        quizData.forEach((item, index) => {
+                            html += `<div class="question-card" id="student-q-${index}">`;
+                            let questionText = item.question || item.main_question || '';
+                            // Auto-remove "Câu X:" prefix to avoid duplication
+                            questionText = questionText.replace(/^Câu\s*\d+[:.]\s*/i, '').trim();
+                            
+                            html += `<div class="flex items-start">
+                                        <div class="flex-grow">
+                                            <div class="flex items-center mb-2">
+                                                <span class="font-bold text-lg mr-3 text-indigo-600">Câu ${index + 1}:</span>
+                                                <div id="q-${index}-feedback-icon"></div>
+                                            </div>
+                                            <div class="question-content mt-2 text-lg text-slate-700">${questionText}</div>
+                                            ${item.questionImage ? `<img src="${item.questionImage}" class="mt-4 rounded-lg max-w-full md:max-w-md border shadow-sm">` : ''}
+                                        </div>
+                                     </div>`;
+                            
+                            html += `<div class="mt-6">`;
+                            switch(item.type) {
+                                case 'multiple-choice':
+                                    html += `<div class="options-grid grid grid-cols-1 md:grid-cols-2 gap-4">`;
+                                    item.options.forEach((opt, i) => {
+                                        html += `<label for="q${index}-opt${i}" id="q${index}-opt-label${i}" class="option-label flex items-center gap-x-3 p-4 border-2 rounded-xl cursor-pointer hover:bg-indigo-50 hover:border-indigo-400">
+                                                    <input type="radio" name="q${index}" id="q${index}-opt${i}" value="${i}" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 flex-shrink-0">
+                                                    <span class="font-semibold text-slate-800">${String.fromCharCode(65 + i)}.</span>
+                                                    <div class="option-content w-full">${opt}</div>
+                                                 </label>`;
+                                    });
+                                    html += `</div>`;
+                                    break;
+                                case 'true-false':
+                                     html += `<div class="space-y-4">`;
+                                     item.statements.forEach((s, i) => {
+                                          html += `<div class="statement-item border-t pt-4">
+                                                      <p class="mb-3 text-slate-700">${String.fromCharCode(97 + i)}) ${s.statement}</p>
+                                                      <div class="flex gap-x-6">
+                                                          <label class="flex items-center cursor-pointer"><input type="radio" name="q${index}-s${i}" value="true" class="mr-2 h-4 w-4"> Đúng</label>
+                                                          <label class="flex items-center cursor-pointer"><input type="radio" name="q${index}-s${i}" value="false" class="mr-2 h-4 w-4"> Sai</label>
+                                                      </div>
+                                                   </div>`;
+                                     });
+                                     html += `</div>`;
+                                     break;
+                                case 'short-answer':
+                                    html += `<input type="text" name="q${index}" class="mt-1 block w-full md:w-1/2 border border-slate-300 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Nhập đáp án của bạn...">`;
+                                    break;
+                            }
+                            html += `</div><div id="q-${index}-feedback" class="mt-4"></div></div>`;
+                        });
+                        studentQuizContainer.innerHTML = html;
+                        if (window.MathJax) {
+                            MathJax.typesetPromise([studentQuizContainer]);
+                        }
+                    }
+
+                    function handleSubmit() {
+                        if (isSubmitted) return;
+                        isSubmitted = true;
+
+                        let score = 0;
+                        let total = quizData.length;
+                        const correctIcon = `<svg class="feedback-icon text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>`;
+                        const incorrectIcon = `<svg class="feedback-icon text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>`;
+
+                        quizData.forEach((item, index) => {
+                            const feedbackEl = document.getElementById(`q-${index}-feedback`);
+                            const feedbackIconEl = document.getElementById(`q-${index}-feedback-icon`);
+                            const questionCardEl = document.getElementById(`student-q-${index}`);
+                            feedbackEl.innerHTML = '';
+                            
+                            let isQuestionCorrect = false;
+
+                            switch(item.type) {
+                                case 'multiple-choice':
+                                    const selectedOption = document.querySelector(`input[name="q${index}"]:checked`);
+                                    if (selectedOption) {
+                                        const selectedIndex = parseInt(selectedOption.value, 10);
+                                        if (selectedIndex === item.correctAnswerIndex) {
+                                            isQuestionCorrect = true;
+                                        } else {
+                                            document.getElementById(`q${index}-opt-label${selectedIndex}`).classList.add('incorrect');
+                                        }
+                                    }
+                                    const correctLabelEl = document.getElementById(`q${index}-opt-label${item.correctAnswerIndex}`);
+                                    correctLabelEl.classList.add('correct');
+                                    break;
+                                case 'true-false':
+                                    let allStatementsCorrect = true;
+                                    item.statements.forEach((s, i) => {
+                                        const selectedValue = document.querySelector(`input[name="q${index}-s${i}"]:checked`);
+                                        const studentAnswer = selectedValue ? selectedValue.value === 'true' : null;
+                                        if (studentAnswer !== s.is_correct) allStatementsCorrect = false;
+                                    });
+                                    isQuestionCorrect = allStatementsCorrect;
+                                    if(!isQuestionCorrect){
+                                        const correctAnswers = item.statements.map((s,i) => `${String.fromCharCode(97+i)}) ${s.is_correct ? 'Đúng' : 'Sai'}`).join(', ');
+                                        feedbackEl.innerHTML = `<div class="correct-answer-reveal">Đáp án đúng: ${correctAnswers}</div>`;
+                                    }
+                                    break;
+                                case 'short-answer':
+                                    const studentAnswerInput = document.querySelector(`input[name="q${index}"]`);
+                                    if (studentAnswerInput && studentAnswerInput.value.trim().toLowerCase() === item.answer.trim().toLowerCase()) {
+                                        isQuestionCorrect = true;
+                                    } else {
+                                        feedbackEl.innerHTML = `<div class="correct-answer-reveal">Đáp án đúng: ${item.answer}</div>`;
+                                    }
+                                    break;
+                            }
+
+                            if(isQuestionCorrect) {
+                                score++;
+                                feedbackIconEl.innerHTML = correctIcon;
+                                questionCardEl.style.borderLeftColor = '#10b981';
+                            } else {
+                                feedbackIconEl.innerHTML = incorrectIcon;
+                                questionCardEl.style.borderLeftColor = '#ef4444';
+                            }
+                            // Add solution button
+                            feedbackEl.innerHTML += `<button data-index="${index}" class="view-solution-btn mt-2 text-sm text-blue-600 hover:underline">Xem Hướng Dẫn Giải (AI)</button><div class="ai-explanation mt-2 hidden"></div>`;
+                        });
+                        
+                        document.querySelectorAll('.view-solution-btn').forEach(btn => btn.addEventListener('click', handleViewSolutionClick));
+                        document.querySelectorAll('input').forEach(input => input.disabled = true);
+
+                        lastScorePercentage = (score / total) * 100;
+                        resultContainer.innerHTML = `<div class="bg-white p-6 rounded-xl shadow-lg inline-block"><p class="text-2xl font-bold text-slate-800">Kết quả: <span class="text-indigo-600">${score} / ${total}</span> câu đúng</p></div>`;
+                        resultContainer.classList.remove('hidden');
+                        submitBtn.classList.add('hidden');
+                        postSubmitOptions.classList.remove('hidden');
+
+                        // Send data to Google Sheet
+                        const formData = new FormData();
+                        formData.append('name', studentInfo.name);
+                        formData.append('class', studentInfo.class);
+                        formData.append('score', `${score}/${total}`);
+                        formData.append('timestamp', new Date().toLocaleString('vi-VN'));
+                        
+                        fetch(googleScriptUrl, { method: 'POST', body: formData})
+                            .then(res => console.log("Successfully submitted to Google Sheet"))
+                            .catch(err => console.error("Error submitting to Google Sheet:", err));
+                    }
+
+                    async function handleViewSolutionClick(event) {
+                        const btn = event.currentTarget;
+                        const index = parseInt(btn.dataset.index, 10);
+                        const explanationDiv = btn.nextElementSibling;
+                        
+                        if (explanationDiv.classList.contains('hidden')) {
+                            explanationDiv.classList.remove('hidden');
+                            explanationDiv.innerHTML = '<div class="flex items-center justify-center"><div class="loader"></div><span class="ml-2">AI đang giải thích...</span></div>';
+                            btn.textContent = 'Ẩn Hướng Dẫn Giải';
+
+                            const item = quizData[index];
+                            let prompt = `Hãy cung cấp một lời giải chi tiết, từng bước một cho câu hỏi toán sau đây. Giải thích rõ ràng các khái niệm và công thức được sử dụng.
+                            ---
+                            CÂU HỎI:
+                            ${item.question || item.main_question}
+                            ---
+                            `;
+                            if (item.type === 'multiple-choice') {
+                                prompt += `ĐÁP ÁN ĐÚNG: ${String.fromCharCode(65 + item.correctAnswerIndex)}. ${item.options[item.correctAnswerIndex]}`;
+                            } else if (item.type === 'true-false') {
+                                 prompt += `CÁC MỆNH ĐỀ VÀ ĐÁP ÁN: ${item.statements.map(s => `${s.statement} -> ${s.is_correct ? 'Đúng' : 'Sai'}`).join('; ')}`;
+                            } else { // short-answer
+                                prompt += `ĐÁP ÁN ĐÚNG: ${item.answer}`;
+                            }
+                            prompt += '\n--- \nQUAN TRỌNG: Định dạng tất cả các công thức toán học bằng LaTeX. Khi giải thích, nếu cần tham chiếu đến đồ thị hoặc bảng, hãy mô tả nó bằng lời thay vì cố gắng vẽ lại.';
+
+                            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                            const explanation = await callGeminiAPI(payload, apiKey);
+                            
+                            explanationDiv.innerHTML = explanation;
+                            MathJax.typesetPromise([explanationDiv]);
+
+                        } else {
+                            explanationDiv.classList.add('hidden');
+                            btn.textContent = 'Xem Hướng Dẫn Giải (AI)';
+                        }
+                    }
+                    
+                    studentInfoForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        studentInfo.name = document.getElementById('student-name').value;
+                        studentInfo.class = document.getElementById('student-class').value;
+                        loginModal.classList.add('hidden');
+                        studentQuizContainer.classList.remove('hidden');
+                        submitBtn.classList.remove('hidden');
+                        renderStudentQuiz();
+                    });
+
+                    // Attach the submit listener once.
+                    submitBtn.addEventListener('click', handleSubmit);
+
+                    retryBtn.addEventListener('click', () => {
+                        // Shuffle questions
+                        for (let i = quizData.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [quizData[i], quizData[j]] = [quizData[j], quizData[i]];
+                        }
+                        
+                        isSubmitted = false; // <-- Reset flag
+                        renderStudentQuiz();
+                        resultContainer.classList.add('hidden');
+                        postSubmitOptions.classList.add('hidden');
+                        submitBtn.classList.remove('hidden');
+                        window.scrollTo(0, 0);
+                    });
+
+                    generateSimilarBtn.addEventListener('click', async () => {
+                        document.getElementById('ai-icon').classList.add('hidden');
+                        document.getElementById('ai-loader').classList.remove('hidden');
+                        document.getElementById('ai-btn-text').textContent = 'Đang tạo...';
+                        generateSimilarBtn.disabled = true;
+
+                        let difficultyInstruction = 'giữ nguyên độ khó tương tự.';
+                        if (lastScorePercentage > 80) {
+                            difficultyInstruction = 'tăng độ khó lên một chút (ví dụ: từ Vận dụng lên Vận dụng cao).';
+                        } else if (lastScorePercentage < 50) {
+                            difficultyInstruction = 'giảm độ khó xuống một chút (ví dụ: từ Vận dụng xuống Thông hiểu).';
+                        }
+
+                        const prompt = `Dựa vào bộ câu hỏi JSON sau đây và kiến thức từ tài liệu đã cung cấp, hãy tạo ra một bộ câu hỏi MỚI.
+                        YÊU CẦU QUAN TRỌNG: Dựa trên kết quả lần trước của học sinh là ${lastScorePercentage.toFixed(0)}%, hãy ${difficultyInstruction}
+                        ---
+                        BỘ CÂU HỎI GỐC: ${JSON.stringify(quizData)}
+                        ---
+                        TÀI LIỆU THAM KHẢO: ${knowledgeBase}
+                        ---
+                        QUAN TRỌNG: Trả về một mảng JSON duy nhất chứa các câu hỏi mới, giữ nguyên định dạng và thuộc tính 'type' cho mỗi câu hỏi. Tất cả công thức toán học PHẢI được viết bằng mã LaTeX. Nếu câu hỏi cần hình ảnh, hãy dùng placeholder theo định dạng [HÌNH VẼ: Đồ thị của hàm số y = f(x) CỤ THỂ] hoặc [BẢNG BIẾN THIÊN: Bảng biến thiên của hàm số y = f(x) CỤ THỂ]. Ví dụ: [HÌNH VẼ: Đồ thị của hàm số y = x^3 - 3x + 2].`;
+                        
+                        const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } };
+                        
+                        try {
+                            const resultText = await callGeminiAPI(payload, apiKey);
+                            let cleanedText = resultText.trim();
+                            if (cleanedText.startsWith('\`\`\`json')) { cleanedText = cleanedText.substring(7); }
+                            if (cleanedText.startsWith('\`\`\`')) { cleanedText = cleanedText.substring(3); }
+                            if (cleanedText.endsWith('\`\`\`')) { cleanedText = cleanedText.slice(0, -3); }
+                            
+                            const newQuiz = JSON.parse(cleanedText);
+                            quizData = newQuiz;
+                            
+                            isSubmitted = false; // Reset for the new quiz
+                            renderStudentQuiz();
+                            resultContainer.classList.add('hidden');
+                            postSubmitOptions.classList.add('hidden');
+                            submitBtn.classList.remove('hidden');
+                            window.scrollTo(0, 0);
+
+                        } catch (e) {
+                            alert('Không thể tạo đề mới. Vui lòng thử lại.');
+                            console.error(e);
+                        } finally {
+                            document.getElementById('ai-icon').classList.remove('hidden');
+                            document.getElementById('ai-loader').classList.add('hidden');
+                            document.getElementById('ai-btn-text').textContent = 'Tạo Đề Tương Tự (AI)';
+                            generateSimilarBtn.disabled = false;
+                        }
+                    });
+                </script>
+            </body>
+            </html>
+            
