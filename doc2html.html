@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chuyển đổi DOCX sang HTML/Text với Cloudinary</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.7.0/mammoth.browser.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+}
+#html-output {
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    min-height: 300px;
+    overflow-wrap: break-word;
+}
+#html-output img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+#code-output, #text-output {
+    min-height: 300px;
+}
+.upload-progress {
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+.tab-button {
+    transition: all 0.2s;
+}
+.tab-button.active {
+    background: white;
+    color: #2563eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+<div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
+    <div class="bg-white shadow-lg rounded-2xl p-6 sm:p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Chuyển đổi DOCX sang HTML/Text</h1>
+            <p class="mt-2 text-gray-600">Upload file .docx, tất cả hình ảnh sẽ được tự động upload lên Cloudinary.</p>
+        </div>
+
+        <!-- Configuration Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label for="cloudinary-cloud-name" class="block text-sm font-medium text-gray-700 mb-1">Cloudinary Cloud Name *</label>
+                <input type="text" id="cloudinary-cloud-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="your-cloud-name">
+            </div>
+            <div>
+                <label for="cloudinary-upload-preset" class="block text-sm font-medium text-gray-700 mb-1">Cloudinary Upload Preset *</label>
+                <input type="text" id="cloudinary-upload-preset" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="your-unsigned-preset">
+            </div>
+        </div>
+
+        <div class="mb-6 p-4 bg-amber-50 border-l-4 border-amber-400 text-amber-800 rounded-r-lg">
+            <p class="font-semibold">📝 Hướng dẫn setup Cloudinary:</p>
+            <ol class="text-sm mt-2 space-y-1">
+                <li>1. Đăng nhập Cloudinary → <strong>Settings</strong> → <strong>Upload</strong></li>
+                <li>2. Tạo <strong>Upload Preset</strong> mới với <strong>Signing Mode = "Unsigned"</strong></li>
+                <li>3. Copy <strong>Cloud Name</strong> và <strong>Upload Preset Name</strong> vào form trên</li>
+            </ol>
+        </div>
+
+        <!-- File Input and Convert Button -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 mb-6">
+            <div class="w-full">
+                <label for="doc-file" class="block text-sm font-medium text-gray-700 mb-1">Chọn file .docx *</label>
+                <input type="file" id="doc-file" accept=".docx" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+            </div>
+            <button id="convert-btn" class="w-full sm:w-auto mt-5 sm:mt-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-2.5 px-8 rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all transform hover:scale-105 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                <span id="convert-text">🚀 Chuyển đổi</span>
+            </button>
+        </div>
+
+        <!-- Progress Section -->
+        <div id="progress-section" class="hidden mb-6">
+            <div class="bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div id="progress-bar" class="upload-progress h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div id="upload-status" class="text-sm text-gray-600 mt-2 text-center font-medium"></div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="status" class="text-center my-4 font-medium"></div>
+
+        <!-- Output Section -->
+        <div id="output-section" class="hidden">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800">📄 Kết quả:</h2>
+                <div class="flex border border-gray-300 rounded-lg p-0.5 bg-gray-100">
+                    <button id="view-btn" class="tab-button px-3 py-1 text-sm font-semibold rounded-md text-gray-600 hover:text-blue-600 transition-all">👁️ View</button>
+                    <button id="code-btn" class="tab-button px-3 py-1 text-sm font-semibold rounded-md text-gray-600 hover:text-blue-600 transition-all">💻 HTML</button>
+                    <button id="text-btn" class="tab-button px-3 py-1 text-sm font-semibold rounded-md text-gray-600 hover:text-blue-600 transition-all">📝 Text</button>
+                </div>
+            </div>
+
+            <!-- Rendered HTML View -->
+            <div id="html-output" class="prose max-w-none"></div>
+
+            <!-- Raw HTML Code View -->
+            <textarea id="code-output" readonly class="w-full p-4 font-mono text-sm bg-gray-900 text-green-400 border border-gray-600 rounded-lg hidden whitespace-pre-wrap focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+            
+            <!-- Plain Text View -->
+            <textarea id="text-output" readonly class="w-full p-4 font-mono text-sm bg-slate-800 text-white border border-gray-600 rounded-lg hidden whitespace-pre-wrap focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Định dạng text sẽ hiển thị ở đây..."></textarea>
+            
+            <!-- Copy Button -->
+            <div id="copy-section" class="hidden mt-2">
+                <button id="copy-btn" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-all text-sm font-medium">
+                    📋 <span id="copy-text">Copy</span>
+                </button>
+                <span id="copy-feedback" class="ml-2 text-green-600 text-sm hidden">✅ Copied!</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+let convertBtn, docFileInput, htmlOutput, statusDiv, cloudNameInput, uploadPresetInput;
+let outputSection, viewBtn, codeBtn, textBtn, codeOutput, textOutput;
+let progressSection, progressBar, uploadStatus;
+let copyBtn, copySection, copyFeedback, copyText;
+let totalImages = 0, uploadedImages = 0, currentHtml = '', currentText = '';
+let currentView = 'view';
+
+// Initialize when DOM loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializeElements();
+    setupEventListeners();
+});
+
+function initializeElements() {
+    convertBtn = document.getElementById('convert-btn');
+    docFileInput = document.getElementById('doc-file');
+    htmlOutput = document.getElementById('html-output');
+    statusDiv = document.getElementById('status');
+    cloudNameInput = document.getElementById('cloudinary-cloud-name');
+    uploadPresetInput = document.getElementById('cloudinary-upload-preset');
+    outputSection = document.getElementById('output-section');
+    viewBtn = document.getElementById('view-btn');
+    codeBtn = document.getElementById('code-btn');
+    textBtn = document.getElementById('text-btn');
+    codeOutput = document.getElementById('code-output');
+    textOutput = document.getElementById('text-output');
+    progressSection = document.getElementById('progress-section');
+    progressBar = document.getElementById('progress-bar');
+    uploadStatus = document.getElementById('upload-status');
+    copyBtn = document.getElementById('copy-btn');
+    copySection = document.getElementById('copy-section');
+    copyFeedback = document.getElementById('copy-feedback');
+    copyText = document.getElementById('copy-text');
+}
+
+function setupEventListeners() {
+    convertBtn.addEventListener('click', handleConversion);
+    viewBtn.addEventListener('click', () => switchToView('view'));
+    codeBtn.addEventListener('click', () => switchToView('code'));
+    textBtn.addEventListener('click', () => switchToView('text'));
+    copyBtn.addEventListener('click', copyToClipboard);
+}
+
+/**
+ * Main conversion handler
+ */
+async function handleConversion() {
+    resetUI();
+
+    const validation = validateInputs();
+    if (!validation.valid) {
+        showStatus(validation.message, 'error');
+        return;
+    }
+
+    const { file, cloudName, uploadPreset } = validation;
+
+    try {
+        setLoadingState(true);
+        showStatus('📖 Đang đọc file DOCX...', 'loading');
+
+        const arrayBuffer = await readFileAsArrayBuffer(file);
+        await convertDocxToHtml(arrayBuffer, cloudName, uploadPreset);
+        
+    } catch (error) {
+        console.error('Conversion failed:', error);
+        showStatus(`❌ Lỗi: ${error.message}`, 'error');
+    } finally {
+        setLoadingState(false);
+    }
+}
+
+/**
+ * Reset UI to initial state
+ */
+function resetUI() {
+    htmlOutput.innerHTML = '';
+    codeOutput.value = '';
+    textOutput.value = '';
+    currentHtml = '';
+    currentText = '';
+    statusDiv.textContent = '';
+    outputSection.classList.add('hidden');
+    progressSection.classList.add('hidden');
+    copySection.classList.add('hidden');
+    totalImages = 0;
+    uploadedImages = 0;
+    updateProgress();
+}
+
+/**
+ * Validate form inputs
+ */
+function validateInputs() {
+    const file = docFileInput.files[0];
+    const cloudName = cloudNameInput.value.trim();
+    const uploadPreset = uploadPresetInput.value.trim();
+
+    if (!cloudName || !uploadPreset) {
+        return { valid: false, message: '⚠️ Vui lòng nhập đầy đủ thông tin Cloudinary!' };
+    }
+    if (!file) {
+        return { valid: false, message: '⚠️ Vui lòng chọn file .docx!' };
+    }
+    if (!file.name.toLowerCase().endsWith('.docx')) {
+        return { valid: false, message: '⚠️ Chỉ hỗ trợ file .docx!' };
+    }
+
+    return { valid: true, file, cloudName, uploadPreset };
+}
+
+/**
+ * Read file as ArrayBuffer
+ */
+function readFileAsArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = () => reject(new Error('Không thể đọc file'));
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+/**
+ * Main conversion function with enhanced image handling
+ */
+async function convertDocxToHtml(arrayBuffer, cloudName, uploadPreset) {
+    console.log('🚀 Starting conversion...');
+
+    showStatus('🔄 Đang phân tích file và tìm hình ảnh...', 'loading');
+
+    const options = {
+        transformImage: async (element) => {
+            return await handleImageUpload(element, cloudName, uploadPreset);
+        },
+        
+        transformEmbeddedObject: async (element) => {
+            console.log('📊 Found embedded object:', element.contentType);
+            if (element.contentType && element.contentType.includes('image')) {
+                return await handleImageUpload(element, cloudName, uploadPreset);
+            }
+            return null;
+        },
+
+        styleMap: [
+            "p[style-name='Heading 1'] => h1:fresh",
+            "p[style-name='Heading 2'] => h2:fresh", 
+            "p[style-name='Heading 3'] => h3:fresh",
+            "p[style-name='Title'] => h1.title:fresh",
+            "r[style-name='Strong'] => strong",
+            "p[style-name='Quote'] => blockquote > p:fresh",
+            "p[style-name='msolistparagraph'] => p",
+            "p[style-name='msolistparagraphcxspmiddle'] => p"
+        ]
+    };
+
+    try {
+        const result = await mammoth.convertToHtml({ arrayBuffer }, options);
+        
+        console.log('✅ Mammoth conversion completed');
+        console.log('📊 Messages:', result.messages?.length || 0);
+        
+        currentHtml = await postProcessHtml(result.value, cloudName, uploadPreset);
+        
+        await generateTextFormat();
+        
+        updateResultsUI(result);
+        
+    } catch (error) {
+        throw new Error(`Conversion failed: ${error.message}`);
+    }
+}
+
+/**
+ * Generate plain text format (Word-like structure)
+ */
+async function generateTextFormat() {
+    showStatus('📝 Đang tạo định dạng text...', 'loading');
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = currentHtml;
+
+    let textContent = '';
+
+    // Process content with proper formatting
+    function processElement(element) {
+        let result = '';
+        
+        for (let node of element.childNodes) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent.trim();
+                if (text) result += text + ' ';
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                const tagName = node.tagName.toLowerCase();
+                
+                if (tagName === 'img') {
+                    const src = node.getAttribute('src');
+                    result += `<img src='${src}' alt='de thi toan online' /> `;
+                } else {
+                    result += processElement(node);
+                }
+                
+                if (['p', 'div', 'h1', 'h2', 'h3', 'li', 'br'].includes(tagName)) {
+                    result += '\n';
+                }
+            }
+        }
+        
+        return result;
+    }
+
+    const allText = processElement(tempDiv);
+    const lines = allText.split('\n').filter(line => line.trim());
+
+    lines.forEach(line => {
+        const text = line.trim();
+        if (!text) return;
+        
+        // Section headers (PHẦN I, PHẦN II, etc.)
+        if (text.match(/^PHẦN\s+[IVX]+/i)) {
+            textContent += `\n${text.toUpperCase()}\n${'='.repeat(Math.min(text.length, 60))}\n`;
+        }
+        // Question
+        else if (text.match(/^Câu\s+\d+\./i)) {
+            textContent += `\n${text}\n`;
+        }
+        // Options A, B, C, D
+        else if (text.match(/^[A-D][\.\)]/)) {
+            textContent += `${text}\n`;
+        }
+        // Sub-options for multi-select (a), b), c), d))
+        else if (text.match(/^[a-d]\)/i)) {
+            textContent += `${text}\n`;
+        }
+        // Explanations
+        else if (text.match(/^(Lời giải|Giải|Đáp án|Hướng dẫn)/i)) {
+            textContent += `\n💡 ${text}\n`;
+        }
+        // Regular paragraph
+        else {
+            textContent += `${text}\n`;
+        }
+    });
+
+    currentText = textContent
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/^\n+/, '')
+        .replace(/\n+$/, '');
+
+    console.log('📝 Text format generated successfully');
+}
+
+/**
+ * Handle individual image upload
+ */
+async function handleImageUpload(element, cloudName, uploadPreset) {
+    totalImages++;
+    console.log(`🖼️ Processing image ${totalImages}...`);
+
+    if (totalImages === 1) {
+        progressSection.classList.remove('hidden');
+    }
+
+    showStatus(`🔄 Đang upload hình ảnh ${totalImages} lên Cloudinary...`, 'loading');
+
+    try {
+        let imageData;
+        let contentType = 'image/png';
+        
+        if (typeof element.read === 'function') {
+            imageData = await element.read();
+        } else if (typeof element.readAsBlob === 'function') {
+            const blob = await element.readAsBlob();
+            imageData = await blob.arrayBuffer();
+            contentType = blob.type || 'image/png';
+        } else if (element.buffer) {
+            imageData = element.buffer;
+        } else {
+            throw new Error('Cannot extract image data');
+        }
+
+        console.log(`📁 Image ${totalImages} size:`, imageData.byteLength, 'bytes');
+
+        const blob = new Blob([imageData], { type: contentType });
+        const uploadResult = await uploadToCloudinary(blob, cloudName, uploadPreset);
+        
+        uploadedImages++;
+        updateProgress();
+        
+        console.log(`✅ Image ${totalImages} uploaded:`, uploadResult.secure_url);
+        
+        return { 
+            src: uploadResult.secure_url,
+            alt: 'de thi toan online',
+            title: `Uploaded: ${uploadResult.public_id}`
+        };
+        
+    } catch (error) {
+        console.error(`❌ Failed to upload image ${totalImages}:`, error);
+        uploadedImages++;
+        updateProgress();
+        
+        return { 
+            src: `data:image/svg+xml;base64,${btoa(`
+                <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="400" height="200" fill="#fee2e2" stroke="#fecaca" stroke-width="2" rx="8"/>
+                    <text x="200" y="100" text-anchor="middle" font-family="Arial" font-size="16" fill="#dc2626">
+                        ❌ Upload Failed
+                    </text>
+                    <text x="200" y="125" text-anchor="middle" font-family="Arial" font-size="12" fill="#991b1b">
+                        Image #${totalImages}: ${error.message.substring(0, 30)}...
+                    </text>
+                </svg>
+            `)}`,
+            alt: 'de thi toan online',
+            title: `Upload error: ${error.message}`
+        };
+    }
+}
+
+/**
+ * Post-process HTML to find and replace any base64 images
+ */
+async function postProcessHtml(html, cloudName, uploadPreset) {
+    console.log('🔍 Post-processing HTML for base64 images...');
+
+    const base64Regex = /<img[^>]+src="data:image\/[^;]+;base64,[^"]*"/g;
+    const matches = html.match(base64Regex);
+
+    if (!matches || matches.length === 0) {
+        console.log('✅ No base64 images found');
+        return html;
+    }
+
+    console.log(`🖼️ Found ${matches.length} base64 images to convert`);
+
+    let processedHtml = html;
+
+    for (let i = 0; i < matches.length; i++) {
+        const match = matches[i];
+        const srcMatch = match.match(/src="(data:image\/[^;]+;base64,[^"]*)"/);
+        
+        if (srcMatch) {
+            try {
+                totalImages++;
+                showStatus(`🔄 Converting base64 image ${i + 1}/${matches.length} to Cloudinary...`, 'loading');
+                
+                const base64Data = srcMatch[1];
+                const blob = await base64ToBlob(base64Data);
+                
+                console.log(`📁 Base64 image ${i + 1} converted to blob:`, blob.size, 'bytes');
+                
+                const uploadResult = await uploadToCloudinary(blob, cloudName, uploadPreset);
+                
+                const newImgTag = match.replace(
+                    /src="[^"]*"/, 
+                    `src='${uploadResult.secure_url}' alt='de thi toan online'`
+                );
+                processedHtml = processedHtml.replace(match, newImgTag);
+                
+                uploadedImages++;
+                updateProgress();
+                
+                console.log(`✅ Converted base64 image ${i + 1}:`, uploadResult.secure_url);
+                
+            } catch (error) {
+                console.error(`❌ Failed to convert base64 image ${i + 1}:`, error.message);
+                uploadedImages++;
+                updateProgress();
+                
+                console.log(`📝 Keeping original base64 image ${i + 1} as fallback`);
+            }
+        }
+    }
+
+    return processedHtml;
+}
+
+/**
+ * Convert base64 string to Blob
+ */
+async function base64ToBlob(base64String) {
+    try {
+        if (!base64String.startsWith('data:')) {
+            throw new Error('Invalid base64 format');
+        }
+        
+        const [header, base64Data] = base64String.split(',');
+        if (!base64Data) {
+            throw new Error('No base64 data found');
+        }
+        
+        const mimeMatch = header.match(/data:([^;]+)/);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+        
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        const blob = new Blob([bytes], { type: mimeType });
+        console.log(`✅ Base64 converted to blob: ${blob.size} bytes`);
+        
+        return blob;
+    } catch (error) {
+        console.error('Error converting base64 to blob:', error);
+        throw new Error(`Base64 conversion failed: ${error.message}`);
+    }
+}
+
+/**
+ * Upload file to Cloudinary using XMLHttpRequest
+ */
+async function uploadToCloudinary(blob, cloudName, uploadPreset) {
+    console.log(`📤 Uploading ${blob.size} bytes to Cloudinary...`);
+
+    return new Promise((resolve, reject) => {
+        const formData = new FormData();
+        formData.append('file', blob);
+        formData.append('upload_preset', uploadPreset);
+        formData.append('folder', 'docx-conversion');
+        formData.append('resource_type', 'auto');
+        
+        const xhr = new XMLHttpRequest();
+        const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+        
+        xhr.open('POST', url);
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    const result = JSON.parse(xhr.responseText);
+                    if (result.secure_url) {
+                        resolve(result);
+                    } else {
+                        reject(new Error('Invalid Cloudinary response: ' + xhr.responseText));
+                    }
+                } catch (e) {
+                    reject(new Error('Failed to parse response: ' + xhr.responseText));
+                }
+            } else {
+                reject(new Error(`HTTP ${xhr.status}: ${xhr.responseText}`));
+            }
+        };
+        
+        xhr.onerror = function() {
+            reject(new Error('Network error during upload'));
+        };
+        
+        xhr.ontimeout = function() {
+            reject(new Error('Upload timeout'));
+        };
+        
+        xhr.timeout = 60000;
+        xhr.send(formData);
+    });
+}
+
+/**
+ * Update results UI
+ */
+function updateResultsUI(result) {
+    htmlOutput.innerHTML = currentHtml;
+    codeOutput.value = currentHtml;
+    textOutput.value = currentText;
+
+    progressSection.classList.add('hidden');
+
+    const imageMessage = totalImages > 0 
+        ? `Đã xử lý ${uploadedImages}/${totalImages} hình ảnh.` 
+        : 'Không có hình ảnh.';
+    showStatus(`✅ Chuyển đổi thành công! ${imageMessage}`, 'success');
+
+    outputSection.classList.remove('hidden');
+    switchToView('view');
+
+    if (result.messages && result.messages.length > 0) {
+        console.log('⚠️ Conversion warnings:');
+        result.messages.forEach((msg, i) => {
+            console.log(`${i + 1}.`, msg.type + ':', msg.message);
+        });
+    }
+}
+
+/**
+ * Update progress bar
+ */
+function updateProgress() {
+    if (totalImages > 0) {
+        const percentage = Math.round((uploadedImages / totalImages) * 100);
+        progressBar.style.width = percentage + '%';
+        uploadStatus.textContent = `📈 Tiến độ: ${uploadedImages}/${totalImages} hình ảnh (${percentage}%)`;
+    }
+}
+
+/**
+ * Switch between different views
+ */
+function switchToView(viewType) {
+    currentView = viewType;
+
+    htmlOutput.classList.add('hidden');
+    codeOutput.classList.add('hidden');
+    textOutput.classList.add('hidden');
+    copySection.classList.add('hidden');
+
+    [viewBtn, codeBtn, textBtn].forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    switch(viewType) {
+        case 'view':
+            htmlOutput.classList.remove('hidden');
+            viewBtn.classList.add('active');
+            copyText.textContent = 'Copy HTML';
+            break;
+        case 'code':
+            codeOutput.classList.remove('hidden');
+            copySection.classList.remove('hidden');
+            codeBtn.classList.add('active');
+            copyText.textContent = 'Copy HTML Code';
+            break;
+        case 'text':
+            textOutput.classList.remove('hidden');
+            copySection.classList.remove('hidden');
+            textBtn.classList.add('active');
+            copyText.textContent = 'Copy Text';
+            break;
+    }
+}
+
+/**
+ * Copy current view content to clipboard
+ */
+async function copyToClipboard() {
+    let contentToCopy = '';
+
+    switch(currentView) {
+        case 'view':
+        case 'code':
+            contentToCopy = currentHtml;
+            break;
+        case 'text':
+            contentToCopy = currentText;
+            break;
+    }
+
+    try {
+        await navigator.clipboard.writeText(contentToCopy);
+        copyFeedback.classList.remove('hidden');
+        setTimeout(() => {
+            copyFeedback.classList.add('hidden');
+        }, 2000);
+    } catch (error) {
+        console.error('Copy failed:', error);
+        const activeTextarea = currentView === 'code' ? codeOutput : textOutput;
+        if (activeTextarea && !activeTextarea.classList.contains('hidden')) {
+            activeTextarea.select();
+            document.execCommand('copy');
+        }
+    }
+}
+
+/**
+ * Set loading state
+ */
+function setLoadingState(loading) {
+    const convertText = document.getElementById('convert-text');
+    if (loading) {
+        convertBtn.disabled = true;
+        convertText.textContent = '⏳ Đang xử lý...';
+    } else {
+        convertBtn.disabled = false;
+        convertText.textContent = '🚀 Chuyển đổi';
+    }
+}
+
+/**
+ * Show status message
+ */
+function showStatus(message, type) {
+    statusDiv.textContent = message;
+    statusDiv.classList.remove('text-blue-600', 'text-green-600', 'text-red-600');
+
+    switch (type) {
+        case 'loading': 
+            statusDiv.classList.add('text-blue-600'); 
+            break;
+        case 'success': 
+            statusDiv.classList.add('text-green-600'); 
+            break;
+        case 'error': 
+            statusDiv.classList.add('text-red-600'); 
+            break;
+    }
+}
+</script>
+
+</body>
+</html>
