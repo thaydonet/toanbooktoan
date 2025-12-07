@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>MathJax + MCQ Dynamic JSON Runner</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 0; padding: 0; background:#f7fafc; color:#111827; }
+    header { padding: 12px 16px; background: #0f172a; color: #fff; display:flex; gap:12px; align-items:center; }
+    header h1 { font-size:16px; margin:0; }
+    .container { display:flex; gap:12px; padding:12px; height: calc(100vh - 60px); box-sizing:border-box; }
+    .pane { flex:1; display:flex; flex-direction:column; gap:8px; background:#fff; border-radius:8px; padding:12px; box-shadow: 0 2px 8px rgba(15,23,42,0.06); overflow:auto; }
+    textarea { width:100%; height:100%; min-height:200px; box-sizing:border-box; font-family: monospace; padding:10px; border:1px solid #e5e7eb; border-radius:6px; resize:vertical; }
+    pre { background:#0b1220; color:#e6eef8; padding:10px; border-radius:6px; overflow:auto; font-size:13px; }
+    .btns { display:flex; gap:8px; flex-wrap:wrap; }
+    button { padding:8px 12px; border-radius:8px; border: none; cursor:pointer; background:#0ea5a4; color:#052023; font-weight:600; }
+    button.secondary { background:#f3f4f6; color:#0f172a; border:1px solid #e6eef8; }
+    .question { padding:10px; border-radius:6px; border:1px dashed #e6eef8; background:#fff; }
+    .options { margin-top:8px; display:flex; flex-direction:column; gap:6px; }
+    .explanation { margin-top:12px; padding:10px; background:#f8fafc; border-radius:6px; border:1px solid #eef2ff; }
+    .meta { font-size:13px; color:#475569; }
+    .status { font-weight:700; }
+  </style>
+
+  <!-- MathJax CDN -->
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['$', '$'], ['\\(', '\\)']], packages: ['base']},
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Trình chạy JSON động → Câu hỏi Toán (MathJax + MCQ)</h1>
+    <div style="margin-left:auto" class="meta">Dán JSON (trái) → Generate → Chấm</div>
+  </header>
+
+  <div class="container">
+    <div class="pane" style="min-width:420px; max-width:55%;">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <strong>JSON input</strong>
+        <div style="margin-left:auto" class="btns">
+          <button id="btnGenerate">Generate</button>
+          <button id="btnPretty" class="secondary">Pretty JSON</button>
+          <button id="btnReset" class="secondary">Reset</button>
+        </div>
+      </div>
+      <textarea id="jsonInput" spellcheck="false">
+// Dán JSON ở đây (ví dụ mẫu cho y = ax^4 + bx^2 + c)
+{
+  "type": "mcq",
+  "question": "Cho hàm số $y = !a(1,2,3,4)! x^4 + {tinh: -2 * !a! * (!k(1,2,3)! * !k!)} x^2 + !c(1,2,3)!$. Tìm khoảng đồng biến, nghịch biến.",
+  "option_a": "Hàm số đồng biến trên $(-\\\\infty; -!k!)$ và $(!k!; +\\\\infty)$.",
+  "option_b": "Hàm số nghịch biến trên $(-\\\\infty; -!k!)$ và $(!k!; +\\\\infty)$.",
+  "option_c": "Hàm số đồng biến trên $(-!k!; !k!)$.",
+  "option_d": "Hàm số nghịch biến trên $(-!k!; !k!)$.",
+  "correct_option": "A",
+  "explanation": "Ta có $y' = 4!a!x^3 + 2{tinh: -2*!a!*!k!*!k!}x = 2x\\\\left( 2!a!x^2 - 2!a! !k!^2 \\\\right)$.\\\\nGiải $y' = 0$ thu được: $x = 0, \\quad x = \\pm !k!$. Vì $4!a! > 0$, bảng biến thiên có dạng dương – âm – dương – âm – dương. Do đó hàm đồng biến trên $(-\\\\infty; -!k!)$ và $(!k!; +\\\\infty)$.",
+  "difficulty_level": "easy",
+  "is_dynamic": true
+}
+      </textarea>
+
+      <div style="display:flex; gap:8px; align-items:center;">
+        <label class="meta">Logs:</label>
+        <div id="log" class="meta" style="margin-left:auto"></div>
+      </div>
+    </div>
+
+    <div class="pane">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <strong>Rendered question</strong>
+        <div style="margin-left:auto" class="btns">
+          <button id="btnGrade" class="secondary">Chấm</button>
+          <button id="btnShowJSON" class="secondary">Hiện JSON đã xử lý</button>
+        </div>
+      </div>
+
+      <div id="renderArea" class="question">
+        <div class="meta">Chưa có câu hỏi — nhấn <strong>Generate</strong>.</div>
+      </div>
+
+      <div id="processedJson" style="margin-top:10px; display:none;">
+        <strong>JSON đã xử lý:</strong>
+        <pre id="outJson"></pre>
+      </div>
+
+      <div id="answerArea" style="margin-top:8px;"></div>
+
+    </div>
+  </div>
+
+<script>
+/*
+  Parser + generator for placeholders and {tinh: ...}
+  Supports:
+   - !name(list)!    => choose randomly from list items (comma separated; supports negatives)
+   - !name#0!        => integer from -10..10 excluding 0
+   - !name:min:max!  => integer in [min,max]
+   - !name!          => reuse previously generated value for name
+   - {tinh: expr}    => compute expression after replacing !placeholders!; supports + - * / ^ and parentheses
+*/
+
+function randInt(min, max) {
+  min = Math.ceil(min); max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function choose(arr) {
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+// sanitize expression: allow digits, operators, parentheses, decimal point, spaces
+function safeEval(expr) {
+  // replace ^ with ** for power
+  expr = expr.replace(/\^/g, '**');
+
+  // disallow any letters remaining
+  if ( /[A-Za-z]/.test(expr) ) {
+    throw new Error('Biểu thức chứa ký tự không hợp lệ sau thay thế: ' + expr);
+  }
+  // allow only digits, operators, parentheses, dot, spaces, and asterisks
+  if (!/^[0-9+\-*/().\s%]*\*{0,2}[0-9+\-*/().\s%]*$/.test(expr)) {
+    // still allow as fallback but be strict
+    // but here reject
+    throw new Error('Biểu thức chứa ký tự bị cấm: ' + expr);
+  }
+  // Use Function to evaluate (should be safe after sanitization)
+  // Protect against accidental huge exponents/divisions (not handled here)
+  // eslint-disable-next-line no-new-func
+  return Function('"use strict"; return (' + expr + ')')();
+}
+
+function parseAndGenerate(rawJsonText) {
+  let data;
+  try {
+    data = JSON.parse(rawJsonText);
+  } catch (e) {
+    throw new Error('JSON không hợp lệ: ' + e.message);
+  }
+
+  const vars = {}; // store generated variable values
+
+  // helper to generate or fetch variable value from a placeholder token match
+  function resolvePlaceholder(name, params) {
+    // if already generated and no params override, reuse
+    if (vars.hasOwnProperty(name) && (!params || params === '')) {
+      return vars[name];
+    }
+
+    // parse params forms
+    // possible params patterns:
+    //  (a,b,c)  -> list
+    //  #0       -> non-zero in [-10..10]
+    //  :min:max or min:max  -> range
+    //  empty -> if not existing, default between -5 and 5 excluding 0
+
+    let value;
+    if (!params || params.trim() === '') {
+      // no params — if exists reuse, else generate random -5..5 possibly nonzero?
+      value = randInt(-5,5);
+    } else {
+      const p = params.trim();
+      // list like (1,2,-3)
+      const listMatch = p.match(/^\((.*)\)$/);
+      if (listMatch) {
+        const items = listMatch[1].split(',').map(s => s.trim()).filter(s => s.length>0).map(Number);
+        value = choose(items);
+      } else if (p === '#0') {
+        // generate -10..10 excluding 0
+        let v;
+        do { v = randInt(-10,10); } while (v === 0);
+        value = v;
+      } else {
+        // maybe :min:max or min:max or min,max?
+        const colon = p.split(':').map(s => s.trim());
+        if (colon.length === 3 && colon[0] === '') {
+          // odd case :min:max (rare)
+          value = randInt(Number(colon[1]), Number(colon[2]));
+        } else if (colon.length === 3) {
+          value = randInt(Number(colon[1]), Number(colon[2]));
+        } else if (colon.length === 2) {
+          // form name:min:max may appear as ':min:max' but also 'min:max'
+          value = randInt(Number(colon[0]), Number(colon[1]));
+        } else {
+          // fallback: comma-separated maybe
+          const byComma = p.split(',').map(s=>s.trim()).filter(Boolean);
+          if (byComma.length>1) {
+            value = choose(byComma.map(Number));
+          } else {
+            // last resort: parse single number
+            const n = Number(p);
+            if (!Number.isNaN(n)) value = n;
+            else value = randInt(-5,5);
+          }
+        }
+      }
+    }
+    // store
+    vars[name] = value;
+    return value;
+  }
+
+  // First pass: collect placeholders with explicit params to fix values
+  // We'll process the full JSON string and replace placeholders progressively.
+  let jsonText = JSON.stringify(data); // work on stringified to avoid JSON parsing quirks
+
+  // Find all placeholder tokens of form !name...!
+  const placeholderRegex = /!([A-Za-z0-9_]+)([^!]*)!/g;
+  // iterate and generate values
+  let m;
+  while ((m = placeholderRegex.exec(jsonText)) !== null) {
+    const full = m[0];
+    const name = m[1];
+    const params = m[2] || '';
+    // remove surrounding parentheses whitespace if present
+    const paramTrim = params.trim();
+    // generate if not existing or if params provided
+    if (!vars.hasOwnProperty(name) || paramTrim.length>0) {
+      try {
+        resolvePlaceholder(name, paramTrim);
+      } catch (e) {
+        console.warn('Không thể tạo placeholder', name, params, e);
+      }
+    }
+  }
+
+  // Now define a function to replace placeholders and {tinh: ...}
+  // 1) Replace placeholders !name(params)! or !name! with its numeric value
+  function replacePlaceholdersAndCompute(str) {
+    // replace all placeholders (including those already used)
+    str = str.replace(/!([A-Za-z0-9_]+)([^!]*)!/g, (s, name, params) => {
+      // if value exists, return it; if not, generate now
+      if (!vars.hasOwnProperty(name)) {
+        try { resolvePlaceholder(name, params || ''); } catch(e){ vars[name]=0; }
+      }
+      return String(vars[name]);
+    });
+
+    // Now compute all {tinh: expr} occurrences
+    str = str.replace(/{tinh:\s*([^}]+)}/g, (s, expr) => {
+      // inside expr there may still be !placeholders! (but we already replaced)
+      // replace ^ with **
+      let exprSafe = expr.replace(/\^/g, '**');
+      // Remove stray whitespace at ends
+      exprSafe = exprSafe.trim();
+      // Evaluate safely
+      try {
+        const val = safeEval(exprSafe);
+        // Format: if integer, display integer; else display fraction/decimal trimmed
+        if (Number.isFinite(val)) {
+          if (Math.abs(Math.round(val) - val) < 1e-9) return String(Math.round(val));
+          // else round to 6 decimals max, remove trailing zeros
+          return String(parseFloat(val.toFixed(6)).toString());
+        } else {
+          return String(val);
+        }
+      } catch (e) {
+        return '{ERR:' + e.message + '}';
+      }
+    });
+
+    return str;
+  }
+
+  // Process all string fields in the parsed JSON object recursively
+  function processObject(obj) {
+    if (typeof obj === 'string') {
+      return replacePlaceholdersAndCompute(obj);
+    } else if (Array.isArray(obj)) {
+      return obj.map(processObject);
+    } else if (obj && typeof obj === 'object') {
+      const out = {};
+      for (const k of Object.keys(obj)) {
+        out[k] = processObject(obj[k]);
+      }
+      return out;
+    } else {
+      return obj;
+    }
+  }
+
+  const processed = processObject(data);
+  return { raw: data, processed, vars };
+}
+
+function renderQuestion(processed) {
+  const container = document.getElementById('renderArea');
+  container.innerHTML = '';
+
+  const q = document.createElement('div');
+  q.className = 'meta';
+  q.innerHTML = '<div style="font-weight:700; margin-bottom:6px;">Câu hỏi:</div>';
+  const qText = document.createElement('div');
+  qText.innerHTML = processed.question || '(Không có câu hỏi)';
+  q.appendChild(qText);
+  container.appendChild(q);
+
+  // options
+  const opts = ['option_a','option_b','option_c','option_d'];
+  const optContainer = document.createElement('div');
+  optContainer.className = 'options';
+  optContainer.style.marginTop = '12px';
+
+  const form = document.createElement('form');
+  form.id = 'mcqForm';
+  opts.forEach((k, idx) => {
+    if (!processed[k]) return;
+    const row = document.createElement('label');
+    row.style.display = 'flex';
+    row.style.alignItems = 'center';
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'mcq';
+    radio.value = String.fromCharCode(65+idx); // 'A'..
+    radio.style.marginRight = '8px';
+    row.appendChild(radio);
+
+    const span = document.createElement('span');
+    span.innerHTML = processed[k];
+    row.appendChild(span);
+    form.appendChild(row);
+  });
+
+  optContainer.appendChild(form);
+  container.appendChild(optContainer);
+
+  // buttons and area for feedback
+  const controls = document.createElement('div');
+  controls.style.marginTop = '10px';
+  const btnGrade = document.createElement('button');
+  btnGrade.type = 'button';
+  btnGrade.textContent = 'Chấm';
+  btnGrade.className = 'secondary';
+  btnGrade.onclick = () => grade(processed);
+  const btnShowExp = document.createElement('button');
+  btnShowExp.type = 'button';
+  btnShowExp.textContent = 'Hiện lời giải';
+  btnShowExp.className = 'secondary';
+  btnShowExp.style.marginLeft = '8px';
+  btnShowExp.onclick = () => {
+    const exp = document.querySelector('#explanationDiv');
+    if (exp) exp.style.display = exp.style.display === 'none' ? 'block' : 'none';
+  };
+  controls.appendChild(btnGrade);
+  controls.appendChild(btnShowExp);
+  container.appendChild(controls);
+
+  // explanation area (hidden initially)
+  const explanationDiv = document.createElement('div');
+  explanationDiv.id = 'explanationDiv';
+  explanationDiv.className = 'explanation';
+  explanationDiv.style.display = 'none';
+  explanationDiv.innerHTML = '<strong>Lời giải:</strong><div style="margin-top:6px;">' + (processed.explanation || '') + '</div>';
+  container.appendChild(explanationDiv);
+
+  // typeset MathJax
+  MathJax.typesetPromise();
+}
+
+function grade(processed) {
+  const form = document.getElementById('mcqForm');
+  if (!form) return;
+  const sel = form.mcq ? form.mcq.value : null;
+  const area = document.getElementById('answerArea');
+  area.innerHTML = '';
+  if (!sel) {
+    area.innerHTML = '<div class="status" style="color:#dc2626">Bạn chưa chọn đáp án.</div>';
+    return;
+  }
+  const correct = (processed.correct_option || 'A').trim().toUpperCase();
+  if (sel === correct) {
+    area.innerHTML = '<div class="status" style="color:#059669">Đúng — đáp án ' + sel + '.</div>';
+  } else {
+    area.innerHTML = '<div class="status" style="color:#dc2626">Sai — bạn chọn ' + sel + '. Đáp án đúng: ' + correct + '.</div>';
+  }
+  // show explanation
+  const exp = document.getElementById('explanationDiv');
+  if (exp) exp.style.display = 'block';
+  MathJax.typesetPromise();
+}
+
+// Hook buttons
+document.getElementById('btnGenerate').addEventListener('click', () => {
+  const raw = document.getElementById('jsonInput').value;
+  const log = document.getElementById('log');
+  log.textContent = '';
+  try {
+    const result = parseAndGenerate(raw);
+    // render
+    renderQuestion(result.processed);
+    // show processed JSON in collapsed pane
+    document.getElementById('outJson').textContent = JSON.stringify(result.processed, null, 2);
+    document.getElementById('processedJson').style.display = 'none';
+    // save last processed in window for grading button outside
+    window._lastProcessed = result.processed;
+    log.textContent = 'Generated ✓';
+  } catch (e) {
+    log.textContent = 'Error: ' + e.message;
+    document.getElementById('renderArea').innerHTML = '<div style="color:#b91c1c">Lỗi khi sinh câu hỏi: ' + e.message + '</div>';
+  }
+});
+
+document.getElementById('btnPretty').addEventListener('click', () => {
+  try {
+    const parsed = JSON.parse(document.getElementById('jsonInput').value);
+    document.getElementById('jsonInput').value = JSON.stringify(parsed, null, 2);
+  } catch (e) {
+    alert('JSON không hợp lệ: ' + e.message);
+  }
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  document.getElementById('jsonInput').value = '';
+  document.getElementById('renderArea').innerHTML = '<div class="meta">Chưa có câu hỏi — nhấn <strong>Generate</strong>.</div>';
+  document.getElementById('outJson').textContent = '';
+  document.getElementById('processedJson').style.display = 'none';
+  document.getElementById('log').textContent = '';
+  document.getElementById('answerArea').innerHTML = '';
+  window._lastProcessed = null;
+});
+
+document.getElementById('btnShowJSON').addEventListener('click', () => {
+  const box = document.getElementById('processedJson');
+  if (box.style.display === 'none') {
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
+});
+
+document.getElementById('btnGrade').addEventListener('click', () => {
+  const processed = window._lastProcessed;
+  if (!processed) {
+    alert('Chưa có câu được sinh. Nhấn Generate trước.');
+    return;
+  }
+  grade(processed);
+});
+
+</script>
+</body>
+</html>
