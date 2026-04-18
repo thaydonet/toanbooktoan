@@ -1,24 +1,24 @@
 Đây là page github để chứa các script cho Toán của booktoan.com
 
-[book toan](https://toan.booktoan.com)      --- [De Latex sang](https://toan.booktoan.com/delatex)
+[book toan](https://thaydonet.github.io/toanbooktoan)      --- [De Latex sang](https://thaydonet.github.io/toanbooktoan/delatex)
 
-[De thi](https://toan.booktoan.com/dethi)   ---- [Học toán đạo hàm](https://toan.booktoan.com/hoctoan/daoham) --- [Lật hình đạo hàm](https://toan.booktoan.com/hoctoan/lathinhdaoham)
+[De thi](https://thaydonet.github.io/toanbooktoan/dethi)   ---- [Học toán đạo hàm](https://thaydonet.github.io/toanbooktoan/hoctoan/daoham) --- [Lật hình đạo hàm](https://thaydonet.github.io/toanbooktoan/hoctoan/lathinhdaoham)
 
 =============
 
-[caro](https://toan.booktoan.com/caro)  ---- [flashcard](https://toan.booktoan.com/flascard)
-[Đồ thị](https://toan.booktoan.com/do-thi)
+[caro](https://thaydonet.github.io/toanbooktoan/caro)  ---- [flashcard](https://thaydonet.github.io/toanbooktoan/flascard)
+[Đồ thị](https://thaydonet.github.io/toanbooktoan/do-thi)
 
 
-[học lý thuyết](https://toan.booktoan.com/hoclythuyet)
+[học lý thuyết](https://thaydonet.github.io/toanbooktoan/hoclythuyet)
 
-[học nguyên hàm](https://toan.booktoan.com/hocnguyenham)   ----------- [nguyên hàm](https://toan.booktoan.com/nguyenham)
+[học nguyên hàm](https://thaydonet.github.io/toanbooktoan/hocnguyenham)   ----------- [nguyên hàm](https://thaydonet.github.io/toanbooktoan/nguyenham)
 
-[latex](https://toan.booktoan.com/latex)   ------- [tạo đề](https://toan.booktoan.com/taode)
+[latex](https://thaydonet.github.io/toanbooktoan/latex)   ------- [tạo đề](https://thaydonet.github.io/toanbooktoan/taode)
 
 
-[Quiz thống kê](https://toan.booktoan.com/quizthongke)  ---- [thống kê 10](https://toan.booktoan.com/thong-ke-10)
+[Quiz thống kê](https://thaydonet.github.io/toanbooktoan/quizthongke)  ---- [thống kê 10](https://thaydonet.github.io/toanbooktoan/thong-ke-10)
 
-[txt to shortcodw quiz do wp](https://toan.booktoan.com/txt2wp)  --- [Docz to html](https://toan.booktoan.com/doc2html)
+[txt to shortcodw quiz do wp](https://thaydonet.github.io/toanbooktoan/txt2wp)  --- [Docz to html](https://thaydonet.github.io/toanbooktoan/doc2html)
 
-[json to quiz](https://toan.booktoan.com/jsonquiz)
+[json to quiz](https://thaydonet.github.io/toanbooktoan/jsonquiz)
